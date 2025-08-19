@@ -1,0 +1,6 @@
+.venv
+anotacoes.txt
+resultados.xlsx
+urls.xlsx
+
+*__pycache

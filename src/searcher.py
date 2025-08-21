@@ -13,7 +13,7 @@ def html_search(url: str) -> str:
         res.raise_for_status()
         return res.text
     except RequestException as e:
-        logger.error(f"Falha ao acessar a URL {url}: {e}")
+        logger.error(f"Failed to access URL {url}: {e}")
         raise e
 
 

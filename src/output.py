@@ -12,5 +12,5 @@ def create_spreadsheet_with_results(urls: List[str], results: List[Union[bool, s
     sheet = pd.DataFrame(data)
 
     sheet.to_excel("resultados.xlsx", index=False)
-    logger.info("Spreadsheet created sucessfully")
-    print("Spreadsheet created sucessfully")
+    logger.info("Spreadsheet created successfully")
+    print("Spreadsheet created successfully")

@@ -45,7 +45,7 @@ def main():
             finder = find_metarobots(html_res)
 
             if finder == True:
-                logger.info(f"SUCESS: Meta tag 'robots' found in: {link}")
+                logger.info(f"SUCCESS: Meta tag 'robots' found in: {link}")
                 return True
             else:
                 logger.info(f"PARTIAL: Meta tag 'robots' not found in: {link}")
@@ -71,7 +71,7 @@ def main():
             for future in as_completed(futures):
                 original_link = futures[future]
 
-                pbar.set_description(f"Verificando { original_link[:50]}")
+                pbar.set_description(f"Checking { original_link[:50]}")
 
                 results = future.result()
 

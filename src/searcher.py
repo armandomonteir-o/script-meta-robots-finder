@@ -2,7 +2,7 @@ import requests as rq
 from bs4 import BeautifulSoup
 
 
-def html_search(url):
+def html_search(url: str) -> str:
 
     res = rq.get(url)
 
@@ -12,7 +12,7 @@ def html_search(url):
         raise ConnectionError
 
 
-def find_metarobots(res):
+def find_metarobots(res: str) -> bool:
     soup = BeautifulSoup(res, "html.parser")
 
     meta_datas = soup.find_all("meta", {"name": "robots"})

@@ -4,14 +4,14 @@ from output import create_planilha_with_results
 from concurrent.futures import ThreadPoolExecutor
 
 
-def insert_url_name():
+def insert_url_name() -> str:
 
     url_name = input("Digite o nome da planilha aqui: ")
 
     return url_name
 
 
-def insert_column_name():
+def insert_column_name() -> str:
 
     column_name = input("Digite o nome da coluna que contenha as URLS: ")
 
@@ -29,7 +29,7 @@ reading_column = read_column(data, column)
 results = []
 
 
-def verificar_link(link):
+def verificar_link(link: str):
     try:
         html_res = html_search(link)
         finder = find_metarobots(html_res)

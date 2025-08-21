@@ -1,7 +1,7 @@
 import pandas as pd
 
 
-def create_planilha_with_results(urls, results):
+def create_planilha_with_results(urls: list[str], results: list[bool | str]):
 
     data = {"urls:": urls, "results": results}
 

@@ -1,16 +1,20 @@
 import requests as rq
+from requests.exceptions import RequestException
 from bs4 import BeautifulSoup
-from logging import log
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def html_search(url: str) -> str:
 
-    res = rq.get(url)
-
-    if res.status_code == 200:
+    try:
+        res = rq.get(url, timeout=10)
+        res.raise_for_status()
         return res.text
-    else:
-        raise ConnectionError
+    except RequestException as e:
+        logger.error(f"Falha ao acessar a URL {url}: {e}")
+        raise e
 
 
 def find_metarobots(res: str) -> bool:

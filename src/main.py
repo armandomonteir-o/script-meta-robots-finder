@@ -1,3 +1,4 @@
+from requests import RequestException
 from url_reader import ler_urls_da_planilha, read_column
 from searcher import html_search, find_metarobots
 from output import create_planilha_with_results
@@ -43,12 +44,16 @@ def verificar_link(link: str):
     try:
         html_res = html_search(link)
         finder = find_metarobots(html_res)
+
         if finder == True:
             logger.info(f"SUCESSO: Meta tag 'robots' encontrada na URL: {link}")
             return True
         else:
             logger.info(f"PARCIAL: Meta tag 'robots' NÃO encontrada na URL: {link}")
             return False
+    except RequestException as e:
+        logger.error((f"ERRO: A verificação da URL {link} falhou. Motivo: {e}"))
+        return "Error"
     except Exception as e:
         logger.critical(f"ERRO INESPERADO ao processar a URL {link}: {e}")
         return "Error"

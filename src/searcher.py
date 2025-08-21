@@ -1,5 +1,6 @@
 import requests as rq
 from bs4 import BeautifulSoup
+from logging import log
 
 
 def html_search(url: str) -> str:
@@ -17,7 +18,4 @@ def find_metarobots(res: str) -> bool:
 
     meta_datas = soup.find_all("meta", {"name": "robots"})
 
-    if len(meta_datas) > 0:
-        return True
-    else:
-        return False
+    return len(meta_datas) > 0

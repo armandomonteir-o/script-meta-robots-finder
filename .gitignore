@@ -2,5 +2,6 @@
 anotacoes.txt
 resultados.xlsx
 urls.xlsx
+app.log
 
-*__pycache
+__pycache

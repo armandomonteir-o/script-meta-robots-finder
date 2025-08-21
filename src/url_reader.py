@@ -9,7 +9,7 @@ def ler_urls_da_planilha(url_name: str) -> pd.DataFrame:
 
 def read_column(df: pd.DataFrame, column: str) -> list[str]:
 
-    coluna = df[column]
+    coluna = df[column].dropna()
 
     convert_to_list = coluna.tolist()
 

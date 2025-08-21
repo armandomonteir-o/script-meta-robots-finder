@@ -2,13 +2,14 @@ from requests import RequestException
 from url_reader import ler_urls_da_planilha, read_column
 from searcher import html_search, find_metarobots
 from output import create_planilha_with_results
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from tqdm import tqdm
 import logging
 
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
-    handlers=[logging.FileHandler("app.log"), logging.StreamHandler()],
+    handlers=[logging.FileHandler("app.log")],
 )
 
 
@@ -37,8 +38,6 @@ column = insert_column_name()
 
 reading_column = read_column(data, column)
 
-results = []
-
 
 def verificar_link(link: str):
     try:
@@ -60,7 +59,28 @@ def verificar_link(link: str):
 
 
 with ThreadPoolExecutor(max_workers=10) as executor:
-    resultados = list(executor.map(verificar_link, reading_column))
+    futures = {executor.submit(verificar_link, link): link for link in reading_column}
+
+    final_results = {}
+
+    with tqdm(
+        total=len(reading_column),
+        bar_format="{l_bar}{bar:40}| {n_fmt}/{total_fmt} [{elapsed}]",
+        colour="green",
+    ) as pbar:
+
+        for future in as_completed(futures):
+            original_link = futures[future]
+
+            pbar.set_description(f"Verificando { original_link[:50]}")
+
+            results = future.result()
+
+            final_results[original_link] = results
+
+            pbar.update(1)
+
+ordened_resulted_list = [final_results[link] for link in reading_column]
 
 
-create_planilha_with_results(reading_column, resultados)
+create_planilha_with_results(reading_column, ordened_resulted_list)

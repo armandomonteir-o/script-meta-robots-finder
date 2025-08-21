@@ -1,10 +1,11 @@
+from typing import List, Union
 import pandas as pd
 import logging
 
 logger = logging.getLogger(__name__)
 
 
-def create_planilha_with_results(urls: list[str], results: list[bool | str]):
+def create_planilha_with_results(urls: List[str], results: List[Union[bool, str]]):
 
     data = {"urls:": urls, "results": results}
 

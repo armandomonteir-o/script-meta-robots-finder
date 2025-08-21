@@ -39,28 +39,26 @@ def main():
 
     reading_column = read_column(data, column)
 
-    def verificar_link(link: str):
+    def link_checker(link: str):
         try:
             html_res = html_search(link)
             finder = find_metarobots(html_res)
 
             if finder == True:
-                logger.info(f"SUCESSO: Meta tag 'robots' encontrada na URL: {link}")
+                logger.info(f"SUCESS: Meta tag 'robots' found in: {link}")
                 return True
             else:
-                logger.info(f"PARCIAL: Meta tag 'robots' NÃO encontrada na URL: {link}")
+                logger.info(f"PARTIAL: Meta tag 'robots' not found in: {link}")
                 return False
         except RequestException as e:
-            logger.error((f"ERRO: A verificação da URL {link} falhou. Motivo: {e}"))
+            logger.error((f"ERROR: URL check for {link} failed. Reason: {e}"))
             return "Error"
         except Exception as e:
-            logger.critical(f"ERRO INESPERADO ao processar a URL {link}: {e}")
+            logger.critical(f"UNEXPECTED ERROR when processing {link}: {e}")
             return "Error"
 
     with ThreadPoolExecutor(max_workers=10) as executor:
-        futures = {
-            executor.submit(verificar_link, link): link for link in reading_column
-        }
+        futures = {executor.submit(link_checker, link): link for link in reading_column}
 
         final_results = {}
 

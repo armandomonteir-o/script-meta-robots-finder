@@ -5,12 +5,12 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def create_planilha_with_results(urls: List[str], results: List[Union[bool, str]]):
+def create_spreadsheet_with_results(urls: List[str], results: List[Union[bool, str]]):
 
     data = {"urls:": urls, "results": results}
 
     sheet = pd.DataFrame(data)
 
     sheet.to_excel("resultados.xlsx", index=False)
-    logger.info("Planilha criada com sucesso")
-    print("Planilha criada com sucesso")
+    logger.info("Spreadsheet created sucessfully")
+    print("Spreadsheet created sucessfully")

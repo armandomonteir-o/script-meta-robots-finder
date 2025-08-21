@@ -16,8 +16,8 @@ def read_urls_from_sheet(url_name: str) -> pd.DataFrame:
 
 def read_column(df: pd.DataFrame, column: str) -> list[str]:
 
-    coluna = df[column].dropna()
+    column_data = df[column].dropna()
 
-    convert_to_list = coluna.tolist()
+    convert_to_list = column_data.tolist()
 
     return convert_to_list

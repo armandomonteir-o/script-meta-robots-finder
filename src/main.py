@@ -1,7 +1,7 @@
 from requests import RequestException
 from url_reader import read_urls_from_sheet, read_column
 from searcher import html_search, find_metarobots
-from output import create_planilha_with_results
+from output import create_spreadsheet_with_results
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from tqdm import tqdm
 import logging
@@ -83,7 +83,7 @@ def main():
 
     ordened_resulted_list = [final_results[link] for link in reading_column]
 
-    create_planilha_with_results(reading_column, ordened_resulted_list)
+    create_spreadsheet_with_results(reading_column, ordened_resulted_list)
 
 
 if __name__ == "__main__":

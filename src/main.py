@@ -10,11 +10,12 @@ import argparse
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
-    handlers=[logging.FileHandler("app.log")],
+    handlers=[logging.FileHandler("./logs/app.log")],
 )
 
 
 def main():
+    """Main function to run the meta robots finder script."""
     parser = argparse.ArgumentParser(
         description="A script to find meta robots tags in URLs from a spreadsheet."
     )
@@ -40,6 +41,14 @@ def main():
     reading_column = read_column(data, column)
 
     def link_checker(link: str):
+        """Checks a single link for the meta robots tag.
+
+        Args:
+            link (str): The URL to check.
+
+        Returns:
+            Union[bool, str]: True if the tag is found, False if not, and "Error" if an exception occurs.
+        """
         try:
             html_res = html_search(link)
             finder = find_metarobots(html_res)

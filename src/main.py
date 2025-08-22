@@ -1,5 +1,3 @@
-from os import link
-from requests import RequestException
 from spreadsheet_manager import SpreadSheetManager
 from crawler import Crawler
 from concurrent.futures import ThreadPoolExecutor, as_completed

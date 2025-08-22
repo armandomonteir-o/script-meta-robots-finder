@@ -2,6 +2,7 @@ import requests as rq
 from requests.exceptions import RequestException
 from bs4 import BeautifulSoup
 import logging
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +28,8 @@ class Crawler:
         except RequestException as e:
             logger.error(f"Failed to access URL {self.url}: {e}")
             raise e
+        finally:
+            time.sleep(1)
 
     def find_metarobots(self) -> bool:
         """Finds the meta robots tag in the HTML content.

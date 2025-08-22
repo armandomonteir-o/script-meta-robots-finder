@@ -1,3 +1,4 @@
+from pathlib import Path
 from spreadsheet_manager import SpreadSheetManager
 from crawler import Crawler
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -5,10 +6,14 @@ from tqdm import tqdm
 import logging
 import argparse
 
+log_directory = Path("./logs")
+
+log_directory.mkdir(exist_ok=True)
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
-    handlers=[logging.FileHandler("./logs/app.log")],
+    handlers=[logging.FileHandler(log_directory / "app.log")],
 )
 
 

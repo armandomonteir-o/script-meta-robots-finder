@@ -59,9 +59,12 @@ def main():
 
                 pbar.set_description(f"Checking { original_link[:50]}")
 
-                results = future.result()
-
-                final_results[original_link] = results
+                try:
+                    results = future.result()
+                    final_results[original_link] = results
+                except Exception as e:
+                    logging.error((f"'{original_link}' generated an exception: {e}"))
+                    final_results[original_link] = "Error"
 
                 pbar.update(1)
 

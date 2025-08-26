@@ -4,6 +4,7 @@ from crawler import Crawler
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from tqdm import tqdm
 import logging
+import requests as rq
 import argparse
 
 log_directory = Path("./logs")
@@ -43,33 +44,39 @@ def main():
 
     final_results = {}
 
-    with ThreadPoolExecutor(max_workers=10) as executor:
-        future_to_url = {
-            executor.submit(Crawler(link).link_checker): link for link in urls_to_check
-        }
+    with rq.Session() as session:
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            future_to_url = {
+                executor.submit(Crawler(link, session).link_checker): link
+                for link in urls_to_check
+            }
 
-        with tqdm(
-            total=len(urls_to_check),
-            bar_format="{l_bar}{bar:40}| {n_fmt}/{total_fmt} [{elapsed}]",
-            colour="green",
-        ) as pbar:
+            with tqdm(
+                total=len(urls_to_check),
+                bar_format="{l_bar}{bar:40}| {n_fmt}/{total_fmt} [{elapsed}]",
+                colour="green",
+            ) as pbar:
 
-            for future in as_completed(future_to_url):
-                original_link = future_to_url[future]
+                for future in as_completed(future_to_url):
+                    original_link = future_to_url[future]
 
-                pbar.set_description(f"Checking { original_link[:50]}")
+                    pbar.set_description(f"Checking { original_link[:50]}")
 
-                try:
-                    results = future.result()
-                    final_results[original_link] = results
-                except Exception as e:
-                    logging.error((f"'{original_link}' generated an exception: {e}"))
-                    final_results[original_link] = "Error"
+                    try:
+                        results = future.result()
+                        final_results[original_link] = results
+                    except Exception as e:
+                        logging.error(
+                            (f"'{original_link}' generated an exception: {e}")
+                        )
+                        final_results[original_link] = "Error"
 
-                pbar.update(1)
+                    pbar.update(1)
 
-    ordered_results = [final_results[link] for link in urls_to_check]
-    SpreadSheetManager.create_spreadsheet_with_results(urls_to_check, ordered_results)
+        ordered_results = [final_results[link] for link in urls_to_check]
+        SpreadSheetManager.create_spreadsheet_with_results(
+            urls_to_check, ordered_results
+        )
 
 
 if __name__ == "__main__":

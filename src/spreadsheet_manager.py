@@ -60,6 +60,6 @@ class SpreadSheetManager:
 
         sheet = pd.DataFrame(data)
 
-        sheet.to_excel("resultados.xlsx", index=False)
+        sheet.to_excel("results.xlsx", index=False)
         logger.info("Spreadsheet created successfully")
         print("Spreadsheet created successfully")

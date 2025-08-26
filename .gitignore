@@ -1,6 +1,6 @@
 .venv
 anotacoes.txt
-resultados.xlsx
+results.xlsx
 urls.xlsx
 app.log
 .vscode

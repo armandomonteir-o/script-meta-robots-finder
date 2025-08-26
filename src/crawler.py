@@ -8,8 +8,9 @@ logger = logging.getLogger(__name__)
 
 
 class Crawler:
-    def __init__(self, url: str):
+    def __init__(self, url: str, session: rq.Session):
         self.url = url
+        self.session = session
 
     def html_search(self) -> str:
         """Fetches the HTML content of a given URL.
@@ -22,7 +23,7 @@ class Crawler:
         """
 
         try:
-            res = rq.get(self.url, timeout=10)
+            res = self.session.get(self.url, timeout=10)
             res.raise_for_status()
             return res.text
         except RequestException as e:

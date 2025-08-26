@@ -44,8 +44,7 @@ A arquitetura desta ferramenta utiliza um conjunto de bibliotecas poderosas para
 
 Aqui está um exemplo do relatório final gerado pelo script:
 
-![Meta Robots Finder Demo](https://imgur.com/a/5V4FsFB)
-_(Nota: Você precisará carregar sua captura de tela para um site como o Imgur e substituir o URL acima)_
+![Meta Robots Finder Demo](./assets/demo-report.png)
 
 ## Instalação e Uso
 
@@ -76,9 +75,9 @@ Siga estes passos para executar o script na sua máquina local.
     ```bash
     python src/main.py <caminho_para_sua_planilha.xlsx> "<nome_da_coluna>"
     ```
-    _Exemplo:_
+    _Um arquivo de exemplo é fornecido na pasta `samples`. Você pode testar o script com este comando:_
     ```bash
-    python src/main.py minhas_urls.xlsx "URLs do Site"
+    python src/main.py samples/sample_urls.xlsx "URL"
     ```
 
 ## Tecnologias Utilizadas

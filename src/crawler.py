@@ -6,6 +6,10 @@ import time
 
 logger = logging.getLogger(__name__)
 
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+}
+
 
 class Crawler:
     def __init__(self, url: str, session: rq.Session):
@@ -23,7 +27,7 @@ class Crawler:
         """
 
         try:
-            res = self.session.get(self.url, timeout=10)
+            res = self.session.get(self.url, timeout=10, headers=HEADERS)
             res.raise_for_status()
             return res.text
         except RequestException as e:

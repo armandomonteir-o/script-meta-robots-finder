@@ -95,7 +95,7 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 ## Contributor
 
-A project conceived and developed by Armando Monteiro."
+A project conceived and developed by Armando Monteiro.
 
 <a href="https://github.com/armandomonteir-o">
   <img src="https://avatars.githubusercontent.com/u/141039211?v=4" width="75" height="75">

@@ -1,6 +1,7 @@
 from pathlib import Path
-from spreadsheet_manager import SpreadSheetManager
-from crawler import Crawler
+from reporting.excel_reader import ExcelReader
+from reporting.excel_writer import ExcelWriter
+from core.crawler import Crawler
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from tqdm import tqdm
 import logging
@@ -38,9 +39,9 @@ def main():
     column = args.column_name
 
     print(f"Reading from file: {url}")
-    spreadsheet_manager = SpreadSheetManager(url)
-    sheet_data = spreadsheet_manager.read_spreadsheet()
-    urls_to_check = SpreadSheetManager.read_column(sheet_data, column)
+    excel_reader = ExcelReader(url)
+    sheet_data = excel_reader.read_spreadsheet()
+    urls_to_check = excel_reader.read_column(sheet_data, column)
 
     final_results = {}
 
@@ -74,9 +75,7 @@ def main():
                     pbar.update(1)
 
         ordered_results = [final_results[link] for link in urls_to_check]
-        SpreadSheetManager.create_spreadsheet_with_results(
-            urls_to_check, ordered_results
-        )
+        ExcelWriter.create_spreadsheet_with_results(urls_to_check, ordered_results)
 
 
 if __name__ == "__main__":

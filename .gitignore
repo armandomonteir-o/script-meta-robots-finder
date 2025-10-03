@@ -5,3 +5,4 @@ urls.xlsx
 app.log
 .vscode
 *__pycache
+prompt-to-expand.md

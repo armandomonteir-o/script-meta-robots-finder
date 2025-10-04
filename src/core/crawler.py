@@ -3,6 +3,7 @@ from requests.exceptions import RequestException
 from bs4 import BeautifulSoup
 import logging
 import time
+from typing import List, Dict
 
 logger = logging.getLogger(__name__)
 
@@ -12,9 +13,11 @@ HEADERS = {
 
 
 class Crawler:
-    def __init__(self, url: str, session: rq.Session):
+    def __init__(self, url: str, session: rq.Session, tags_to_check: List[str]):
         self.url = url
         self.session = session
+        self.tags_to_check = tags_to_check
+        self.soup = None
 
     def html_search(self) -> str:
         """Fetches the HTML content of a given URL.
@@ -36,45 +39,31 @@ class Crawler:
         finally:
             time.sleep(1)
 
-    def find_metarobots(self) -> bool:
-        """Finds the meta robots tag in the HTML content.
+    def find_meta_by_name(self, meta_name: str) -> bool:
+        """Finds the meta tag (defined in meta_name) in the HTML content.
 
         Args:
             res (str): The HTML content to search.
 
         Returns:
-            bool: True if the meta robots tag is found, False otherwise.
+            bool: True if the meta_name tag is found, False otherwise.
         """
-        res = self.html_search()
+        if self.soup is None:
+            try:
+                res = self.html_search()
+                self.soup = BeautifulSoup(res, "html.parser")
+            except RequestException:
+                return False
 
-        soup = BeautifulSoup(res, "html.parser")
-
-        meta_datas = soup.find_all("meta", {"name": "robots"})
-
+        meta_datas = self.soup.find_all("meta", {"name": meta_name})
         return len(meta_datas) > 0
 
-    def link_checker(self):
-        """Checks a single link for the meta robots tag.
+    def execute_scan(self) -> Dict[str, bool]:
 
-        Args:
-            link (str): The URL to check.
+        res = {}
 
-        Returns:
-            Union[bool, str]: True if the tag is found, False if not, and "Error" if an exception occurs.
-        """
-        try:
+        for tag in self.tags_to_check:
+            is_found = self.find_meta_by_name(tag)
+            res[tag] = is_found
 
-            finder = self.find_metarobots()
-
-            if finder == True:
-                logger.info(f"SUCCESS: Meta tag 'robots' found in: {self.url}")
-                return True
-            else:
-                logger.info(f"PARTIAL: Meta tag 'robots' not found in: {self.url}")
-                return False
-        except RequestException as e:
-            logger.error((f"ERROR: URL check for {self.url} failed. Reason: {e}"))
-            return "Error"
-        except Exception as e:
-            logger.critical(f"UNEXPECTED ERROR when processing {self.url}: {e}")
-            return "Error"
+        return res

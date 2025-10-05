@@ -4,5 +4,5 @@ results.xlsx
 urls.xlsx
 app.log
 .vscode
-*__pycache
+*__pycache__
 prompt-to-expand.md

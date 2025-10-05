@@ -1,5 +1,4 @@
 import argparse
-from ast import arg
 from reporting.excel_reader import ExcelReader
 from reporting.excel_writer import ExcelWriter
 import requests as rq
@@ -7,6 +6,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from tqdm import tqdm
 from core.crawler import Crawler
 import logging
+import pandas as pd
 
 logger = logging.getLogger(__name__)
 
@@ -54,9 +54,16 @@ def run(args: argparse.Namespace):
                         final_results[original_link] = results
                     except Exception as e:
                         logger.error((f"'{original_link}' generated an exception: {e}"))
-                        final_results[original_link] = "Error"
+                        final_results[original_link] = {
+                            check: "Error" for check in args.checks
+                        }
 
                     pbar.update(1)
 
-        ordered_results = [final_results[link] for link in urls_to_check]
-        ExcelWriter.create_spreadsheet_with_results(urls_to_check, ordered_results)
+        report_data = []
+        for url, results_dict in final_results.items():
+            row = {"URL": url, **results_dict}
+            report_data.append(row)
+
+        df = pd.DataFrame(report_data)
+        ExcelWriter.create_spreadsheet_with_results(df)

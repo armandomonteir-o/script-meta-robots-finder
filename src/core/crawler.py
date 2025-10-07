@@ -1,6 +1,6 @@
 import requests as rq
 from requests.exceptions import RequestException
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Tag
 import logging
 import time
 from typing import List, Dict
@@ -67,3 +67,26 @@ class Crawler:
             res[tag] = is_found
 
         return res
+
+    def get_meta_content_by_name(self, meta_name: str) -> str | None:
+        """Finds a meta tag by name and returns its content.
+
+        Args:
+            meta_name (str): The name of the meta tag to find (e.g., 'description').
+
+        Returns:
+            str | None: The content of the meta tag if found, otherwise None.
+        """
+        if self.soup is None:
+            try:
+                res = self.html_search()
+                self.soup = BeautifulSoup(res, "html.parser")
+            except RequestException:
+                return None
+
+        meta_tag = self.soup.find("meta", {"name": meta_name})
+
+        if isinstance(meta_tag, Tag) and "content" in meta_tag.attrs:
+            return str(meta_tag["content"])
+        else:
+            return None

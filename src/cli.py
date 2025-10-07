@@ -4,7 +4,7 @@ import argparse
 import logging
 from pathlib import Path
 import questionary
-from commands import scan_metas
+from commands import scan_metas, compare_metas
 
 log_directory = Path("./logs")
 log_directory.mkdir(exist_ok=True)
@@ -17,7 +17,7 @@ logging.basicConfig(
 
 def _setup_scan_metas_command(subparsers: argparse._SubParsersAction):
     parser_scan = subparsers.add_parser(
-        "scan_metas", description="Scans a list of URLs for specific meta tags."
+        "scan-metas", description="Scans a list of URLs for specific meta tags."
     )
     parser_scan.add_argument("file_path", help="Path to the .xlsx file with URLs.")
     parser_scan.add_argument(
@@ -32,6 +32,39 @@ def _setup_scan_metas_command(subparsers: argparse._SubParsersAction):
     parser_scan.set_defaults(func=scan_metas.run)
 
 
+def _setup_compare_metas_command(subparsers: argparse._SubParsersAction):
+
+    parser_compare = subparsers.add_parser(
+        "compare-metas",
+        description="Audits meta tag contents against an Excel spreadsheet.",
+    )
+
+    parser_compare.add_argument(
+        "file_path",
+        help="Path to the .xlsx file with URL, Meta Name, and Expected Content columns.",
+    )
+
+    parser_compare.add_argument(
+        "--url-col",
+        default="URL",
+        help="Name of the column containing the URLs.",
+    )
+
+    parser_compare.add_argument(
+        "--name-col",
+        default="Meta Name",
+        help="Name of the column containing the meta tag names (default: 'Meta Name').",
+    )
+
+    parser_compare.add_argument(
+        "--content-col",
+        default="Expected Content",
+        help="Name of the column with the expected content (default: 'Expected Content').",
+    )
+
+    parser_compare.set_defaults(func=compare_metas.run)
+
+
 def setup_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="SEO Helper - a CLI Tool to improve technical SEO stuff"
@@ -42,6 +75,7 @@ def setup_parser() -> argparse.ArgumentParser:
     )
 
     _setup_scan_metas_command(subparsers)
+    _setup_compare_metas_command(subparsers)
 
     return parser
 

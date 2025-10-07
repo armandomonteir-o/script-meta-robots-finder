@@ -119,23 +119,43 @@ def _choose_command(parser: argparse.ArgumentParser) -> argparse.ArgumentParser 
 
 
 def _collect_arguments(command_parser: argparse.ArgumentParser) -> dict | None:
+    """Collects required and optional arguments from the user interactively."""
 
     interactive_args = {}
 
+    actions = [action for action in command_parser._actions if action.dest != "help"]
+    required_actions = [action for action in actions if action.required]
+    optional_actions = [action for action in actions if not action.required]
+
     print("\nPlease provide the following information:\n")
 
-    for action in command_parser._actions:
-        if action.dest == "help" or not action.required:
-            continue
-
+    for action in required_actions:
         user_input = questionary.text(f"{action.help}").ask()
-
         if user_input is None:
-
             print("\nOperation cancelled. Exiting.")
-            return
-
+            return None
         interactive_args[action.dest] = user_input
+
+    if optional_actions:
+        configure_optionals = questionary.confirm(
+            "Would you like to configure the optional arguments?"
+        ).ask()
+
+        if configure_optionals:
+            print("\nPlease configure the optional arguments:\n")
+            for action in optional_actions:
+                prompt = f"{action.help} (Default: {action.default})"
+                user_input = questionary.text(prompt).ask()
+
+                if user_input is None:
+                    print("\nOperation cancelled. Exiting.")
+                    return None
+
+                if user_input.strip():
+                    if action.nargs == "+":
+                        interactive_args[action.dest] = user_input.split()
+                    else:
+                        interactive_args[action.dest] = user_input
 
     return interactive_args
 

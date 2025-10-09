@@ -3,6 +3,7 @@ import logging
 from typing import List, Union, cast
 from xlsxwriter.workbook import Workbook
 from xlsxwriter.worksheet import Worksheet
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +20,13 @@ class ExcelWriter:
             results (List[Union[bool, str]]): A list of results for each URL.
         """
 
-        with pd.ExcelWriter(filename, engine="xlsxwriter") as writer:
+        output_dir = "results"
+
+        os.makedirs(output_dir, exist_ok=True)
+
+        full_path = os.path.join(output_dir, filename)
+
+        with pd.ExcelWriter(full_path, engine="xlsxwriter") as writer:
             df.to_excel(writer, sheet_name="Results", index=False)
 
             workbook = cast(Workbook, writer.book)

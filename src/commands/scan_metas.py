@@ -69,41 +69,27 @@ class ScanMetasCommand(Command):
         print(f"Recebi o arquivo: {args.file_path}")
         print(f"Recebi a coluna: {args.column_name}")
 
-        url = args.file_path
-        if not url.endswith(".xlsx"):
-            url = url + ".xlsx"
+        filepath = self._normalize_filepath(args.file_path)
 
         column = args.column_name
 
-        print(f"Reading from file: {url}")
-        excel_reader = ExcelReader(url)
+        print(f"Reading from file: {filepath}")
+        excel_reader = ExcelReader(filepath)
         sheet_data = excel_reader.read_spreadsheet()
         urls_to_check = excel_reader.read_column(sheet_data, column)
 
-        report_data = []
+        task_function = lambda url, session: self._process_url(
+            url, args.checks, session
+        )
 
-        with rq.Session() as session:
-            with ThreadPoolExecutor(max_workers=10) as executor:
-                future_to_url = {
-                    executor.submit(self._process_url, url, args.checks, session): url
-                    for url in urls_to_check
-                }
+        report_data = self._run_concurrent_tasks(
+            tasks=urls_to_check, task_function=task_function, pbar_color="green"
+        )
 
-                with tqdm(
-                    total=len(urls_to_check),
-                    bar_format="{l_bar}{bar:40}| {n_fmt}/{total_fmt} [{elapsed}]",
-                    colour="green",
-                ) as pbar:
+        if not report_data:
+            print("Nenhum dado foi processado. Nenhum relatório será gerado.")
+            return
 
-                    for future in as_completed(future_to_url):
-                        original_link = future_to_url[future]
-
-                        pbar.set_description(f"Checking { original_link[:50]}")
-
-                        results = future.result()
-                        report_data.append(results)
-                        pbar.update(1)
-
-            logger.info("Scan concluído. Gerando relatório.")
-            df = pd.DataFrame(report_data)
-            ExcelWriter.create_spreadsheet_with_results(df)
+        logger.info("Scan concluído. Gerando relatório.")
+        report_df = pd.DataFrame(report_data)
+        ExcelWriter.create_spreadsheet_with_results(report_df)

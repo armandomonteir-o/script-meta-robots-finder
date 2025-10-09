@@ -115,37 +115,24 @@ class CompareMetasCommand(Command):
         print(">>> Comando 'compare-metas' ativado! <<<")
         print(f"Recebi os argumentos: {args}")
 
-        url = args.file_path
-        if not url.endswith(".xlsx"):
-            url = url + ".xlsx"
+        filepath = self._normalize_filepath(args.file_path)
 
-        excel_reader = ExcelReader(url)
+        excel_reader = ExcelReader(filepath)
         sheet_data = excel_reader.read_spreadsheet()
 
         sheet_data = self._clean_dataframe(sheet_data, args.url_col)
 
-        report_data = []
+        tasks_to_process = [row for index, row in sheet_data.iterrows()]
 
-        with rq.Session() as session:
-            with ThreadPoolExecutor(max_workers=10) as executor:
-                future_to_row = {
-                    executor.submit(self._process_row, row, args, session): row
-                    for index, row in sheet_data.iterrows()
-                }
+        task_function = lambda task, session: self._process_row(task, args, session)
 
-                with tqdm(
-                    total=len(sheet_data),
-                    bar_format="{l_bar}{bar:40}| {n_fmt}/{total_fmt} [{elapsed}]",
-                    colour="blue",
-                ) as pbar:
-                    for future in as_completed(future_to_row):
-                        original_row = future_to_row[future]
-                        url = original_row[args.url_col]
-                        pbar.set_description(f"Checking {url[:50]}")
+        report_data = self._run_concurrent_tasks(
+            tasks=tasks_to_process, task_function=task_function, pbar_color="green"
+        )
 
-                        result = future.result()
-                        report_data.append(result)
-                        pbar.update(1)
+        if not report_data:
+            print("Nenhum dado foi processado. Nenhum relatório será gerado.")
+            return
 
         if not report_data:
             print("Nenhum dado foi processado. Nenhum relatório será gerado.")

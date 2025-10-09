@@ -20,6 +20,7 @@ class CliApp:
         """
         Initializes the application and registers all available commands.
         """
+        logging.info("CliApp initialized.")
         self.commands = {
             "scan-metas": ScanMetasCommand(),
             "compare-metas": CompareMetasCommand(),
@@ -167,16 +168,26 @@ class CliApp:
         if not args_dict:
             return
 
+        logging.info(f"Command chose: { command_name},")
+        logging.info(f"Collected arguments: { args_dict},")
         self._execute_command(command_parser, args_dict, command_name)
 
     def run_direct_mode(self):
-        args = self.parser.parse_args()
-        args.func(args)
+        try:
+            args = self.parser.parse_args()
+            args.func(args)
+        except Exception as e:
+            logging.error(
+                f"An unexpected error occurred in direct mode: {e}", exc_info=True
+            )
+            print(f"\nAn unexpected error occurred: {e}")
 
     def run(self):
         if len(sys.argv) <= 1:
+            logging.info("Running in interactive mode.")
             self.run_interactive_mode()
         else:
+            logging.info("Running in direct mode.")
             self.run_direct_mode()
 
 

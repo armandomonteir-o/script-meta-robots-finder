@@ -82,8 +82,13 @@ class ScanMetasCommand(Command):
             url, args.checks, session
         )
 
+        desc_provider = lambda task: task
+
         report_data = self._run_concurrent_tasks(
-            tasks=urls_to_check, task_function=task_function, pbar_color="green"
+            tasks=urls_to_check,
+            task_function=task_function,
+            desc_provider=desc_provider,
+            pbar_color="green",
         )
 
         if not report_data:

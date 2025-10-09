@@ -40,7 +40,11 @@ class Command(ABC):
         return filepath
 
     def _run_concurrent_tasks(
-        self, tasks: Iterable, task_function: Callable, pbar_color: str = "green"
+        self,
+        tasks: Iterable,
+        task_function: Callable,
+        desc_provider: Callable,
+        pbar_color: str = "green",
     ) -> List[dict]:
         """
         A generic engine to run tasks concurrently with a progress bar.
@@ -77,12 +81,8 @@ class Command(ABC):
                     for future in as_completed(future_to_task):
                         original_task = future_to_task[future]
 
-                        url_for_desc = str(
-                            original_task.get("URL")
-                            if isinstance(original_task, pd.Series)
-                            else original_task
-                        )
-                        pbar.set_description(f"Processing {url_for_desc[:50]}")
+                        description = desc_provider(original_task)
+                        pbar.set_description(f"Processing {description[:50]}")
 
                         result = future.result()
                         results.append(result)

@@ -126,13 +126,14 @@ class CompareMetasCommand(Command):
 
         task_function = lambda task, session: self._process_row(task, args, session)
 
-        report_data = self._run_concurrent_tasks(
-            tasks=tasks_to_process, task_function=task_function, pbar_color="green"
-        )
+        desc_provider = lambda task: task[args.url_col]
 
-        if not report_data:
-            print("Nenhum dado foi processado. Nenhum relatório será gerado.")
-            return
+        report_data = self._run_concurrent_tasks(
+            tasks=tasks_to_process,
+            task_function=task_function,
+            desc_provider=desc_provider,
+            pbar_color="green",
+        )
 
         if not report_data:
             print("Nenhum dado foi processado. Nenhum relatório será gerado.")

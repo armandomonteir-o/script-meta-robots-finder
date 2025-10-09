@@ -7,87 +7,103 @@ from tqdm import tqdm
 from core.crawler import Crawler
 import logging
 import pandas as pd
+from .base_command import Command
 
 logger = logging.getLogger(__name__)
 
 
-def _process_url(url: str, checks: list[str], session: rq.Session) -> dict:
-    """Processes a single URL to scan for specified meta tags.
+class ScanMetasCommand(Command):
 
-    Designed to be run in a separate thread.
+    @staticmethod
+    def setup_args(parser: argparse.ArgumentParser):
+        parser.description = "Scans a list of URLs for specific meta tags."
 
-    Args:
-        url (str): The URL to be processed.
-        checks (list[str]): A list of meta tag names to scan for.
-        session (rq.Session): The requests.Session object for making HTTP requests.
+        parser.add_argument("file_path", help="Path to the .xlsx file with URLs.")
+        parser.add_argument(
+            "column_name", help="Name of the column containing the URLs."
+        )
+        parser.add_argument(
+            "--checks",
+            nargs="+",
+            default=["robots"],
+            help="A list of meta tags to check (e.g., robots description viewport).",
+        )
 
-    Returns:
-        dict: A dictionary containing the URL and the scan results.
-    """
-    try:
+    def _process_url(self, url: str, checks: list[str], session: rq.Session) -> dict:
+        """Processes a single URL to scan for specified meta tags.
 
-        crawler = Crawler(url, session, checks)
-        results = crawler.execute_scan()
+        Designed to be run in a separate thread.
 
-        return {"URL": url, **results}
+        Args:
+            url (str): The URL to be processed.
+            checks (list[str]): A list of meta tag names to scan for.
+            session (rq.Session): The requests.Session object for making HTTP requests.
 
-    except Exception as e:
-        logger.error(f"'{url}' generated an exception: {e}")
+        Returns:
+            dict: A dictionary containing the URL and the scan results.
+        """
+        try:
+            crawler = Crawler(url, session, checks)
+            results = crawler.execute_scan()
 
-        error_results = {check: "Error" for check in checks}
-        return {"URL": url, **error_results}
+            return {"URL": url, **results}
 
+        except Exception as e:
+            logger.error(f"'{url}' generated an exception: {e}")
 
-def run(args: argparse.Namespace):
-    """Executes the meta tag scan concurrently based on user arguments.
+            error_results = {check: "Error" for check in checks}
+            return {"URL": url, **error_results}
 
-    Reads a list of URLs from a spreadsheet, processes them in parallel to
-    check for the existence of specified meta tags, and generates an Excel
-    report with the results.
+    def execute(self, args: argparse.Namespace):
+        """Executes the meta tag scan concurrently based on user arguments.
 
-    Args:
-        args (argparse.Namespace): The command-line arguments, including
-            file_path, column_name, and checks.
-    """
-    print(">>> Comando 'scan-metas' ativado! <<<")
-    print(f"Recebi o arquivo: {args.file_path}")
-    print(f"Recebi a coluna: {args.column_name}")
+        Reads a list of URLs from a spreadsheet, processes them in parallel to
+        check for the existence of specified meta tags, and generates an Excel
+        report with the results.
 
-    url = args.file_path
-    if not url.endswith(".xlsx"):
-        url = url + ".xlsx"
+        Args:
+            args (argparse.Namespace): The command-line arguments, including
+                file_path, column_name, and checks.
+        """
+        print(">>> Comando 'scan-metas' ativado! <<<")
+        print(f"Recebi o arquivo: {args.file_path}")
+        print(f"Recebi a coluna: {args.column_name}")
 
-    column = args.column_name
+        url = args.file_path
+        if not url.endswith(".xlsx"):
+            url = url + ".xlsx"
 
-    print(f"Reading from file: {url}")
-    excel_reader = ExcelReader(url)
-    sheet_data = excel_reader.read_spreadsheet()
-    urls_to_check = excel_reader.read_column(sheet_data, column)
+        column = args.column_name
 
-    report_data = []
+        print(f"Reading from file: {url}")
+        excel_reader = ExcelReader(url)
+        sheet_data = excel_reader.read_spreadsheet()
+        urls_to_check = excel_reader.read_column(sheet_data, column)
 
-    with rq.Session() as session:
-        with ThreadPoolExecutor(max_workers=10) as executor:
-            future_to_url = {
-                executor.submit(_process_url, url, args.checks, session): url
-                for url in urls_to_check
-            }
+        report_data = []
 
-            with tqdm(
-                total=len(urls_to_check),
-                bar_format="{l_bar}{bar:40}| {n_fmt}/{total_fmt} [{elapsed}]",
-                colour="green",
-            ) as pbar:
+        with rq.Session() as session:
+            with ThreadPoolExecutor(max_workers=10) as executor:
+                future_to_url = {
+                    executor.submit(self._process_url, url, args.checks, session): url
+                    for url in urls_to_check
+                }
 
-                for future in as_completed(future_to_url):
-                    original_link = future_to_url[future]
+                with tqdm(
+                    total=len(urls_to_check),
+                    bar_format="{l_bar}{bar:40}| {n_fmt}/{total_fmt} [{elapsed}]",
+                    colour="green",
+                ) as pbar:
 
-                    pbar.set_description(f"Checking { original_link[:50]}")
+                    for future in as_completed(future_to_url):
+                        original_link = future_to_url[future]
 
-                    results = future.result()
-                    report_data.append(results)
-                    pbar.update(1)
+                        pbar.set_description(f"Checking { original_link[:50]}")
 
-        logger.info("Scan concluído. Gerando relatório.")
-        df = pd.DataFrame(report_data)
-        ExcelWriter.create_spreadsheet_with_results(df)
+                        results = future.result()
+                        report_data.append(results)
+                        pbar.update(1)
+
+            logger.info("Scan concluído. Gerando relatório.")
+            df = pd.DataFrame(report_data)
+            ExcelWriter.create_spreadsheet_with_results(df)

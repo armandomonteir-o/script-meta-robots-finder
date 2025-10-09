@@ -1,10 +1,10 @@
-from ast import arg
 import sys
 import argparse
 import logging
 from pathlib import Path
 import questionary
-from commands import scan_metas, compare_metas
+from commands.scan_metas import ScanMetasCommand
+from commands.compare_metas import CompareMetasCommand
 
 log_directory = Path("./logs")
 log_directory.mkdir(exist_ok=True)
@@ -15,202 +15,171 @@ logging.basicConfig(
 )
 
 
-def _setup_scan_metas_command(subparsers: argparse._SubParsersAction):
-    parser_scan = subparsers.add_parser(
-        "scan-metas", description="Scans a list of URLs for specific meta tags."
-    )
-    parser_scan.add_argument("file_path", help="Path to the .xlsx file with URLs.")
-    parser_scan.add_argument(
-        "column_name", help="Name of the column containing the URLs."
-    )
-    parser_scan.add_argument(
-        "--checks",
-        nargs="+",
-        default=["robots"],
-        help="A list of meta tags to check (e.g., robots description viewport).",
-    )
-    parser_scan.set_defaults(func=scan_metas.run)
+class CliApp:
+    def __init__(self):
+        """
+        Initializes the application and registers all available commands.
+        """
+        self.commands = {
+            "scan-metas": ScanMetasCommand(),
+            "compare-metas": CompareMetasCommand(),
+        }
+        self.parser = self._setup_parser()
 
+    def _setup_parser(self) -> argparse.ArgumentParser:
+        parser = argparse.ArgumentParser(
+            description="SEO Helper - a CLI Tool to improve technical SEO stuff"
+        )
 
-def _setup_compare_metas_command(subparsers: argparse._SubParsersAction):
+        subparsers = parser.add_subparsers(
+            dest="command", required=True, help="Available commands"
+        )
 
-    parser_compare = subparsers.add_parser(
-        "compare-metas",
-        description="Audits meta tag contents against an Excel spreadsheet.",
-    )
+        for name, command_instance in self.commands.items():
 
-    parser_compare.add_argument(
-        "file_path",
-        help="Path to the .xlsx file with URL, Meta Name, and Expected Content columns.",
-    )
+            command_parser = subparsers.add_parser(name)
 
-    parser_compare.add_argument(
-        "--url-col",
-        default="URL",
-        help="Name of the column containing the URLs.",
-    )
+            command_instance.setup_args(command_parser)
 
-    parser_compare.add_argument(
-        "--name-col",
-        default="Meta Name",
-        help="Name of the column containing the meta tag names (default: 'Meta Name').",
-    )
+            command_parser.set_defaults(func=command_instance.execute)
 
-    parser_compare.add_argument(
-        "--content-col",
-        default="Expected Content",
-        help="Name of the column with the expected content (default: 'Expected Content').",
-    )
+        return parser
 
-    parser_compare.set_defaults(func=compare_metas.run)
+    def _choose_command(self) -> argparse.ArgumentParser | None:
 
+        subparsers_action = next(
+            (
+                action
+                for action in self.parser._actions
+                if isinstance(action, argparse._SubParsersAction)
+            ),
+            None,
+        )
 
-def setup_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
-        description="SEO Helper - a CLI Tool to improve technical SEO stuff"
-    )
+        if subparsers_action is None:
+            print("Error: Could not find commands configuration.")
+            return
 
-    subparsers = parser.add_subparsers(
-        dest="command", required=True, help="Available commands"
-    )
+        command_choices = [
+            f"{name}: {sub_parser.description}"
+            for name, sub_parser in subparsers_action.choices.items()
+        ]
 
-    _setup_scan_metas_command(subparsers)
-    _setup_compare_metas_command(subparsers)
+        if not command_choices:
+            print("No commands available")
+            return
 
-    return parser
-
-
-def _choose_command(parser: argparse.ArgumentParser) -> argparse.ArgumentParser | None:
-
-    subparsers_action = next(
-        (
-            action
-            for action in parser._actions
-            if isinstance(action, argparse._SubParsersAction)
-        ),
-        None,
-    )
-
-    if subparsers_action is None:
-        print("Error: Could not find commands configuration.")
-        return
-
-    command_choices = [
-        f"{name}: {sub_parser.description}"
-        for name, sub_parser in subparsers_action.choices.items()
-    ]
-
-    if not command_choices:
-        print("No commands available")
-        return
-
-    chosen_command_str = questionary.select(
-        "Which command would you like to run?",
-        choices=command_choices,
-        use_indicator=True,
-    ).ask()
-
-    if chosen_command_str is None:
-        print("\nExiting. See you next time!")
-        return None
-
-    chosen_command_name = chosen_command_str.split(":")[0]
-    return subparsers_action.choices[chosen_command_name]
-
-
-def _collect_arguments(command_parser: argparse.ArgumentParser) -> dict | None:
-    """Collects required and optional arguments from the user interactively."""
-
-    interactive_args = {}
-
-    actions = [action for action in command_parser._actions if action.dest != "help"]
-    required_actions = [action for action in actions if action.required]
-    optional_actions = [action for action in actions if not action.required]
-
-    print("\nPlease provide the following information:\n")
-
-    for action in required_actions:
-        user_input = questionary.text(f"{action.help}").ask()
-        if user_input is None:
-            print("\nOperation cancelled. Exiting.")
-            return None
-        interactive_args[action.dest] = user_input
-
-    if optional_actions:
-        configure_optionals = questionary.confirm(
-            "Would you like to configure the optional arguments?"
+        chosen_command_str = questionary.select(
+            "Which command would you like to run?",
+            choices=command_choices,
+            use_indicator=True,
         ).ask()
 
-        if configure_optionals:
-            print("\nPlease configure the optional arguments:\n")
-            for action in optional_actions:
-                prompt = f"{action.help} (Default: {action.default})"
-                user_input = questionary.text(prompt).ask()
+        if chosen_command_str is None:
+            print("\nExiting. See you next time!")
+            return None
 
-                if user_input is None:
-                    print("\nOperation cancelled. Exiting.")
-                    return None
+        chosen_command_name = chosen_command_str.split(":")[0]
+        return subparsers_action.choices[chosen_command_name]
 
-                if user_input.strip():
-                    if action.nargs == "+":
-                        interactive_args[action.dest] = user_input.split()
-                    else:
-                        interactive_args[action.dest] = user_input
+    def _collect_arguments(
+        self, command_parser: argparse.ArgumentParser
+    ) -> dict | None:
+        """Collects required and optional arguments from the user interactively."""
 
-    return interactive_args
+        interactive_args = {}
 
+        actions = [
+            action for action in command_parser._actions if action.dest != "help"
+        ]
+        required_actions = [action for action in actions if action.required]
+        optional_actions = [action for action in actions if not action.required]
 
-def _execute_command(
-    command_parser: argparse.ArgumentParser, args_dict: dict, command_name: str
-):
+        print("\nPlease provide the following information:\n")
 
-    final_args = argparse.Namespace(**args_dict)
+        for action in required_actions:
+            user_input = questionary.text(f"{action.help}").ask()
+            if user_input is None:
+                print("\nOperation cancelled. Exiting.")
+                return None
+            interactive_args[action.dest] = user_input
 
-    for action in command_parser._actions:
-        if not hasattr(final_args, action.dest):
-            setattr(final_args, action.dest, action.default)
+        if optional_actions:
+            configure_optionals = questionary.confirm(
+                "Would you like to configure the optional arguments?"
+            ).ask()
 
-    command_function = command_parser.get_default("func")
-    if command_function:
-        command_function(final_args)
-    else:
-        print(f"Error: No function associated with command '{command_name}'.")
+            if configure_optionals:
+                print("\nPlease configure the optional arguments:\n")
+                for action in optional_actions:
+                    prompt = f"{action.help} (Default: {action.default})"
+                    user_input = questionary.text(prompt).ask()
 
+                    if user_input is None:
+                        print("\nOperation cancelled. Exiting.")
+                        return None
 
-def run_interactive_mode():
-    try:
-        with open("src/splash.txt", "r", encoding="utf-8") as f:
-            splash_screen = f.read()
-        print(splash_screen)
-    except FileNotFoundError:
-        print("========== SEO Helper ==========")
-    print("\nWelcome to SEO Helper!")
+                    if user_input.strip():
+                        if action.nargs == "+":
+                            interactive_args[action.dest] = user_input.split()
+                        else:
+                            interactive_args[action.dest] = user_input
 
-    parser = setup_parser()
+        return interactive_args
 
-    command_parser = _choose_command(parser)
-    if not command_parser:
-        return
+    def _execute_command(
+        self,
+        command_parser: argparse.ArgumentParser,
+        args_dict: dict,
+        command_name: str,
+    ):
 
-    command_name = command_parser.prog.split()[-1]
-    print(f"\nYou chose: {command_name}. Great choice!")
-    print("\nNow, let's get the arguments for this command...")
+        final_args = argparse.Namespace(**args_dict)
 
-    args_dict = _collect_arguments(command_parser)
-    if not args_dict:
-        return
+        for action in command_parser._actions:
+            if not hasattr(final_args, action.dest):
+                setattr(final_args, action.dest, action.default)
 
-    _execute_command(command_parser, args_dict, command_name)
+        command_function = command_parser.get_default("func")
+        if command_function:
+            command_function(final_args)
+        else:
+            print(f"Error: No function associated with command '{command_name}'.")
 
+    def run_interactive_mode(self):
+        try:
+            with open("src/splash.txt", "r", encoding="utf-8") as f:
+                splash_screen = f.read()
+            print(splash_screen)
+        except FileNotFoundError:
+            print("========== SEO Helper ==========")
+        print("\nWelcome to SEO Helper!")
 
-def run_direct_mode():
-    parser = setup_parser()
-    args = parser.parse_args()
-    args.func(args)
+        command_parser = self._choose_command()
+        if not command_parser:
+            return
+
+        command_name = command_parser.prog.split()[-1]
+        print(f"\nYou chose: {command_name}. Great choice!")
+        print("\nNow, let's get the arguments for this command...")
+
+        args_dict = self._collect_arguments(command_parser)
+        if not args_dict:
+            return
+
+        self._execute_command(command_parser, args_dict, command_name)
+
+    def run_direct_mode(self):
+        args = self.parser.parse_args()
+        args.func(args)
+
+    def run(self):
+        if len(sys.argv) <= 1:
+            self.run_interactive_mode()
+        else:
+            self.run_direct_mode()
 
 
 def main():
-    if len(sys.argv) <= 1:
-        run_interactive_mode()
-    else:
-        run_direct_mode()
+    app = CliApp()
+    app.run()

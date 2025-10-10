@@ -1,4 +1,6 @@
 import argparse
+
+import questionary
 from reporting.excel_reader import ExcelReader
 from reporting.excel_writer import ExcelWriter
 import requests as rq
@@ -73,10 +75,36 @@ class ScanMetasCommand(Command):
 
         column = args.column_name
 
-        print(f"Reading from file: {filepath}")
-        excel_reader = ExcelReader(filepath)
-        sheet_data = excel_reader.read_spreadsheet()
-        urls_to_check = excel_reader.read_column(sheet_data, column)
+        while True:
+            try:
+                print(f"Reading from file: {filepath}")
+                excel_reader = ExcelReader(filepath)
+                sheet_data = excel_reader.read_spreadsheet()
+                break
+            except FileNotFoundError:
+                new_filepath = questionary.text(
+                    f"Arquivo '{filepath}' não encontrado. Por favor, digite o nome correto do caminho do arquivo:"
+                ).ask()
+
+                if new_filepath is None:
+                    print("Operação cancelada.")
+                    return
+
+                filepath = self._normalize_filepath(new_filepath)
+
+        while True:
+            try:
+                urls_to_check = excel_reader.read_column(sheet_data, column)
+                break
+            except KeyError:
+                new_column = questionary.text(
+                    f"Coluna '{column}' não encontrada na planilha. Por favor, digite o nome correto da coluna:"
+                ).ask()
+
+                if new_column is None:
+                    print("Operação cancelada.")
+                    return
+                column = new_column
 
         task_function = lambda url, session: self._process_url(
             url, args.checks, session

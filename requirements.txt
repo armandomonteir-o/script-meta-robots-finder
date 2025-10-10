@@ -3,10 +3,15 @@ certifi==2025.8.3
 charset-normalizer==3.4.3
 et_xmlfile==2.0.0
 idna==3.10
+iniconfig==2.1.0
 numpy==2.3.2
 openpyxl==3.1.5
+packaging==25.0
 pandas==2.3.1
+pluggy==1.6.0
 prompt_toolkit==3.0.52
+Pygments==2.19.2
+pytest==8.4.2
 python-dateutil==2.9.0.post0
 pytz==2025.2
 questionary==2.1.1

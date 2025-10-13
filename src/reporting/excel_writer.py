@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 class ExcelWriter:
     @staticmethod
     def create_spreadsheet_with_results(
-        df: pd.DataFrame, filename: str = "results.xlsx"
+        df: pd.DataFrame, filename: str = "results/results.xlsx"
     ):
         """Creates a spreadsheet with the results of the meta tag search.
 
@@ -20,13 +20,11 @@ class ExcelWriter:
             results (List[Union[bool, str]]): A list of results for each URL.
         """
 
-        output_dir = "results"
+        output_dir = os.path.dirname(filename)
+        if output_dir:
+            os.makedirs(output_dir, exist_ok=True)
 
-        os.makedirs(output_dir, exist_ok=True)
-
-        full_path = os.path.join(output_dir, filename)
-
-        with pd.ExcelWriter(full_path, engine="xlsxwriter") as writer:
+        with pd.ExcelWriter(filename, engine="xlsxwriter") as writer:
             df.to_excel(writer, sheet_name="Results", index=False)
 
             workbook = cast(Workbook, writer.book)

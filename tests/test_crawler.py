@@ -1,5 +1,5 @@
 from unittest.mock import patch, Mock
-from src.core.crawler import Crawler
+from core.crawler import Crawler
 
 
 def test_find_meta_by_name_should_return_true_if_tag_exists():
@@ -17,7 +17,7 @@ def test_find_meta_by_name_should_return_true_if_tag_exists():
         </body>
     </html>
     """
-    with patch("src.core.crawler.Crawler.html_search") as mock_html_search:
+    with patch("core.crawler.Crawler.html_search") as mock_html_search:
         mock_html_search.return_value = fake_html_with_tag
         mock_session = Mock()
         crawler_instance = Crawler(
@@ -42,7 +42,7 @@ def test_find_meta_by_name_should_return_false_if_tag_not_exists():
         </body>
     </html>
     """
-    with patch("src.core.crawler.Crawler.html_search") as mock_html_search:
+    with patch("core.crawler.Crawler.html_search") as mock_html_search:
         mock_html_search.return_value = fake_html_without_tag
         mock_session = Mock()
         crawler_instance = Crawler(
@@ -65,7 +65,7 @@ def test_get_meta_content_by_name_should_return_content():
         <body></body>
     </html>
     """
-    with patch("src.core.crawler.Crawler.html_search") as mock_html_search:
+    with patch("core.crawler.Crawler.html_search") as mock_html_search:
         mock_html_search.return_value = fake_html
         mock_session = Mock()
         crawler_instance = Crawler(
@@ -87,7 +87,7 @@ def test_get_meta_content_by_name_should_return_none_if_tag_not_exists():
         <body></body>
     </html>
     """
-    with patch("src.core.crawler.Crawler.html_search") as mock_html_search:
+    with patch("core.crawler.Crawler.html_search") as mock_html_search:
         mock_html_search.return_value = fake_html
         mock_session = Mock()
         crawler_instance = Crawler(
@@ -112,7 +112,7 @@ def test_get_meta_content_by_name_should_return_none_if_content_missing():
         </body>
     </html>
     """
-    with patch("src.core.crawler.Crawler.html_search") as mock_html_search:
+    with patch("core.crawler.Crawler.html_search") as mock_html_search:
         mock_html_search.return_value = fake_html_malformed_tag
         mock_session = Mock()
         crawler_instance = Crawler(

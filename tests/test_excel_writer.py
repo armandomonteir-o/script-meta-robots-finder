@@ -1,7 +1,7 @@
 import pytest
 import pandas as pd
 from pandas.testing import assert_frame_equal
-from src.reporting.excel_writer import ExcelWriter
+from reporting.excel_writer import ExcelWriter
 
 
 def test_create_spreadsheet_with_results(tmp_path):

@@ -28,7 +28,8 @@ class ExcelReader:
 
     @staticmethod
     def read_column(df: pd.DataFrame, column: str) -> list[str]:
-        """Reads a specific column from a DataFrame and returns it as a list.
+        """Reads a specific column from a DataFrame and returns it as a list,
+        performing a case-insensitive search for the column name.
 
         Args:
             df (pd.DataFrame): The DataFrame to read from.
@@ -38,8 +39,13 @@ class ExcelReader:
             list[str]: A list of values from the specified column.
         """
 
-        column_data = df[column].dropna()
+        matching_column = None
+        for col in df.columns:
+            if col.lower() == column.lower():
+                matching_column = col
+                break
 
-        convert_to_list = column_data.tolist()
-
-        return convert_to_list
+        if matching_column:
+            return df[matching_column].dropna().tolist()
+        else:
+            raise KeyError(f"Column '{column}' not found.")

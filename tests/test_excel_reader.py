@@ -66,3 +66,15 @@ def test_read_column_raises_key_error_for_missing_column():
 
     with pytest.raises(KeyError):
         ExcelReader.read_column(test_df, "Coluna Inexistente")
+
+
+def test_read_column_is_case_insensitive():
+    """
+    Verifies that read_column can find a column regardless of the case provided.
+    """
+    test_df = pd.DataFrame({"URL": ["site1.com", "site2.com"]})
+    expected_list = ["site1.com", "site2.com"]
+
+    result_list = ExcelReader.read_column(test_df, "url")
+
+    assert result_list == expected_list

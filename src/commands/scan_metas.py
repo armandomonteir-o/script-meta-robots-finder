@@ -4,8 +4,6 @@ import questionary
 from reporting.excel_reader import ExcelReader
 from reporting.excel_writer import ExcelWriter
 import requests as rq
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from tqdm import tqdm
 from core.crawler import Crawler
 import logging
 import pandas as pd

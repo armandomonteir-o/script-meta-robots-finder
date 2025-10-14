@@ -5,7 +5,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from tqdm import tqdm
 import pandas as pd
 
-from src.core.crawler import Crawler
+from core.crawler import Crawler
 from reporting.excel_reader import ExcelReader
 from reporting.excel_writer import ExcelWriter
 from .base_command import Command
@@ -117,8 +117,9 @@ class CompareMetasCommand(Command):
 
         filepath = self._normalize_filepath(args.file_path)
 
-        excel_reader = ExcelReader(filepath)
-        sheet_data = excel_reader.read_spreadsheet()
+        sheet_data = self._get_valid_sheet_data(filepath)
+        if sheet_data is None:
+            raise ValueError("No valid sheet data found in the file")
 
         sheet_data = self._clean_dataframe(sheet_data, args.url_col)
 

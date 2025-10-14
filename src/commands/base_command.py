@@ -5,6 +5,8 @@ from typing import Callable, Iterable, List
 import requests as rq
 from tqdm import tqdm
 import pandas as pd
+from reporting.excel_reader import ExcelReader
+import questionary
 
 
 class Command(ABC):
@@ -88,6 +90,63 @@ class Command(ABC):
                         results.append(result)
                         pbar.update(1)
         return results
+
+    def _get_valid_sheet_data(self, filepath: str) -> pd.DataFrame | None:
+        """
+        Interactively validates the file path and reads the spreadsheet.
+        It will keep asking the user for a correct path until one is provided or the operation is cancelled.
+
+        Args:
+            filepath (str): The initial file path provided by the user.
+
+        Returns:
+            pd.DataFrame | None: The loaded DataFrame if successful, or None if the user cancels.
+        """
+
+        while True:
+            try:
+                print(f"Reading from file: {filepath}")
+                excel_reader = ExcelReader(filepath)
+                sheet_data = excel_reader.read_spreadsheet()
+                return sheet_data
+            except FileNotFoundError:
+                new_filepath = questionary.text(
+                    f"Arquivo '{filepath}' não encontrado. Por favor, digite o nome correto do caminho do arquivo:"
+                ).ask()
+
+                if new_filepath is None:
+                    print("Operação cancelada.")
+                    return
+
+                filepath = self._normalize_filepath(new_filepath)
+
+    def _get_validated_urls_from_column(
+        self, column: str, sheet_data: pd.DataFrame
+    ) -> list[str] | None:
+        """
+        Interactively validates the column name and extracts the URL list.
+        It will keep asking the user for a correct column name until one is provided or the operation is cancelled.
+
+        Args:
+            sheet_data (pd.DataFrame): The DataFrame to read from.
+            column (str): The initial column name provided by the user.
+
+        Returns:
+            list[str] | None: The list of URLs if successful, or None if the user cancels.
+        """
+        while True:
+            try:
+                urls_to_check = ExcelReader.read_column(sheet_data, column)
+                return urls_to_check
+            except KeyError:
+                new_column = questionary.text(
+                    f"Coluna '{column}' não encontrada na planilha. Por favor, digite o nome correto da coluna:"
+                ).ask()
+
+                if new_column is None:
+                    print("Operação cancelada.")
+                    return None
+                column = new_column
 
     @abstractmethod
     def execute(self, args: argparse.Namespace):

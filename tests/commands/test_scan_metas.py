@@ -24,7 +24,7 @@ def test_scan_metas_execute_flow_after_refactor():
     with patch(
         "commands.scan_metas.ScanMetasCommand._get_valid_sheet_data"
     ) as mock_get_sheet, patch(
-        "commands.scan_metas.ScanMetasCommand._get_valid_urls_from_column"
+        "commands.scan_metas.ScanMetasCommand._get_validated_urls_from_column"
     ) as mock_get_urls, patch(
         "commands.scan_metas.ScanMetasCommand._run_concurrent_tasks"
     ) as mock_run_tasks, patch(

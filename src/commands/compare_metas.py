@@ -1,12 +1,9 @@
 import argparse
 import logging
 import requests as rq
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from tqdm import tqdm
 import pandas as pd
-
 from core.crawler import Crawler
-from reporting.excel_reader import ExcelReader
 from reporting.excel_writer import ExcelWriter
 from .base_command import Command
 
@@ -89,23 +86,6 @@ class CompareMetasCommand(Command):
                 "Match?": False,
             }
 
-    def _clean_dataframe(self, df: pd.DataFrame, url_column: str) -> pd.DataFrame:
-        """Removes rows from the DataFrame that do not have a valid URL.
-
-        Args:
-            df (pd.DataFrame): The input DataFrame to be cleaned.
-            url_column (str): The name of the column that should contain the URLs.
-
-        Returns:
-            pd.DataFrame: A cleaned copy of the input DataFrame.
-        """
-
-        cleaned_df = df.dropna(subset=[url_column]).copy()
-
-        cleaned_df = cleaned_df[cleaned_df[url_column].str.strip() != ""]
-
-        return cleaned_df
-
     def execute(self, args: argparse.Namespace):
         """Executes the meta tag content comparison concurrently.
 
@@ -155,7 +135,7 @@ class CompareMetasCommand(Command):
             tasks=tasks_to_process,
             task_function=task_function,
             desc_provider=desc_provider,
-            pbar_color="green",
+            pbar_color="red",
         )
 
         if not report_data:

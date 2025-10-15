@@ -3,7 +3,7 @@ from requests.exceptions import RequestException
 from bs4 import BeautifulSoup, Tag
 import logging
 import time
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -89,4 +89,27 @@ class Crawler:
         if isinstance(meta_tag, Tag) and "content" in meta_tag.attrs:
             return str(meta_tag["content"])
         else:
+            return None
+
+    def fetch_sitemap_urls(self) -> Optional[List[str]]:
+        """
+        Fetches and parses a sitemap.xml file to extract all URLs.
+
+        Returns:
+            Optional[List[str]]: A list of URLs found in the sitemap,
+                                 or None if an error occurs (e.g., network error, invalid XML).
+        """
+        try:
+
+            xml_content = self.html_search()
+
+            self.soup = BeautifulSoup(xml_content, "xml")
+
+            loc_tags = self.soup.find_all("loc")
+
+            urls = [tag.text for tag in loc_tags]
+
+            return urls
+        except Exception as e:
+            logger.error(f"Error processing sitemap {self.url}: {e}")
             return None

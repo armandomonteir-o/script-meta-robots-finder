@@ -196,6 +196,23 @@ class Command(ABC):
 
         return validated_columns
 
+    def _clean_dataframe(self, df: pd.DataFrame, url_column: str) -> pd.DataFrame:
+        """Removes rows from the DataFrame that do not have a valid URL.
+
+        Args:
+            df (pd.DataFrame): The input DataFrame to be cleaned.
+            url_column (str): The name of the column that should contain the URLs.
+
+        Returns:
+            pd.DataFrame: A cleaned copy of the input DataFrame.
+        """
+
+        cleaned_df = df.dropna(subset=[url_column]).copy()
+
+        cleaned_df = cleaned_df[cleaned_df[url_column].str.strip() != ""]
+
+        return cleaned_df
+
     @abstractmethod
     def execute(self, args: argparse.Namespace):
         """

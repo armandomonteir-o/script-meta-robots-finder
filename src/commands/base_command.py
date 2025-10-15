@@ -1,7 +1,7 @@
 import argparse
 from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Callable, Iterable, List
+from typing import Callable, Iterable, List, Optional, Dict
 import requests as rq
 from tqdm import tqdm
 import pandas as pd
@@ -147,6 +147,54 @@ class Command(ABC):
                     print("Operação cancelada.")
                     return None
                 column = new_column
+
+    def _ensure_multiple_columns_exist(
+        self, required_columns: List[Dict], sheet_data: pd.DataFrame
+    ) -> Optional[List[str]]:
+        """
+        Interactively validates that a list of required columns exists in the DataFrame,
+        performing a case-insensitive search. If a column is not found,
+        it prompts the user for the correct name.
+
+        Args:
+            required_columns (List[str]): A list of column names to validate.
+            sheet_data (pd.DataFrame): The DataFrame to check against.
+
+        Returns:
+            Optional[List[str]]: A list with the corrected, valid column names
+                                    (preserving original casing from the file),
+                                    or None if the user cancels the operation.
+        """
+        validated_columns = []
+        actual_sheet_columns = sheet_data.columns.tolist()
+
+        for col_to_find in required_columns:
+            current_col_name = col_to_find["name"]
+
+            while True:
+                matching_column = None
+
+                for actual_col in actual_sheet_columns:
+                    if actual_col.lower() == current_col_name.lower():
+                        matching_column = actual_col
+                        break
+
+                if matching_column:
+                    validated_columns.append(matching_column)
+                    break
+                else:
+                    description = col_to_find["description"]
+                    new_col_name = questionary.text(
+                        f"Coluna '{current_col_name}', {description} não encontrada. Por favor, digite o nome correto da coluna:"
+                    ).ask()
+
+                    if new_col_name is None:
+                        print("Operação cancelada.")
+                        return None
+
+                    current_col_name = new_col_name
+
+        return validated_columns
 
     @abstractmethod
     def execute(self, args: argparse.Namespace):

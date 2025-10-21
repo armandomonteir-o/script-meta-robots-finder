@@ -6,3 +6,4 @@ app.log
 .vscode
 *__pycache__
 prompt-to-expand.md
+.coverage

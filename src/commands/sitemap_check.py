@@ -10,7 +10,7 @@ from typing import Optional
 logger = logging.getLogger(__name__)
 
 
-class SitemapCheck(Command):
+class SitemapCheckCommand(Command):
 
     @staticmethod
     def setup_args(parser: argparse.ArgumentParser):

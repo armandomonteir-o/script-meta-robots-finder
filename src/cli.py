@@ -5,7 +5,7 @@ from pathlib import Path
 import questionary
 from commands.scan_metas import ScanMetasCommand
 from commands.compare_metas import CompareMetasCommand
-from commands.sitemap_check import SitemapCheck
+from commands.sitemap_check import SitemapCheckCommand
 
 log_directory = Path("./logs")
 log_directory.mkdir(exist_ok=True)
@@ -25,7 +25,7 @@ class CliApp:
         self.commands = {
             "scan-metas": ScanMetasCommand(),
             "compare-metas": CompareMetasCommand(),
-            "sitemap-check": SitemapCheck(),
+            "sitemap-check": SitemapCheckCommand(),
         }
         self.parser = self._setup_parser()
 

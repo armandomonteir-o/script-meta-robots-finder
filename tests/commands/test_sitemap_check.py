@@ -3,7 +3,7 @@
 from unittest.mock import patch, MagicMock
 import pandas as pd
 from pandas.testing import assert_frame_equal
-from commands.sitemap_check import SitemapCheck
+from commands.sitemap_check import SitemapCheckCommand
 
 
 def test_sitemap_check_execute_flow():
@@ -39,13 +39,13 @@ def test_sitemap_check_execute_flow():
     expected_df = pd.DataFrame(expected_report_data)
 
     with patch(
-        "commands.sitemap_check.SitemapCheck._get_valid_sheet_data"
+        "commands.sitemap_check.SitemapCheckCommand._get_valid_sheet_data"
     ) as mock_get_sheet, patch(
-        "commands.sitemap_check.SitemapCheck._ensure_multiple_columns_exist"
+        "commands.sitemap_check.SitemapCheckCommand._ensure_multiple_columns_exist"
     ) as mock_ensure_cols, patch(
-        "commands.sitemap_check.SitemapCheck._fetch_and_prepare_sitemap_set"
+        "commands.sitemap_check.SitemapCheckCommand._fetch_and_prepare_sitemap_set"
     ) as mock_fetch_sitemap, patch(
-        "commands.sitemap_check.SitemapCheck._run_concurrent_tasks"
+        "commands.sitemap_check.SitemapCheckCommand._run_concurrent_tasks"
     ) as mock_run_tasks, patch(
         "commands.sitemap_check.ExcelWriter.create_spreadsheet_with_results"
     ) as mock_excel_writer:
@@ -55,7 +55,7 @@ def test_sitemap_check_execute_flow():
         mock_fetch_sitemap.return_value = fake_sitemap_urls_set
         mock_run_tasks.return_value = expected_report_data
 
-        command = SitemapCheck()
+        command = SitemapCheckCommand()
         command.execute(fake_args)
 
         mock_get_sheet.assert_called_once()

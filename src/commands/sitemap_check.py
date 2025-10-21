@@ -152,5 +152,5 @@ class SitemapCheck(Command):
 
         report_df = pd.DataFrame(report_data)
         ExcelWriter.create_spreadsheet_with_results(
-            report_df, "sitemap_check_results.xlsx"
+            report_df, "results/sitemap_check_results.xlsx"
         )

@@ -51,6 +51,65 @@ A arquitetura desta ferramenta utiliza um conjunto de bibliotecas poderosas para
 - **Rede Otimizada e Eficiente:** Para minimizar a latência e o overhead de conexões, a aplicação utiliza um único objeto `requests.Session` que é compartilhado entre todas as threads. Isso permite a reutilização de conexões TCP (keep-alive), melhorando significativamente a performance em varreduras de grande volume.
 - **Tratamento de Erros Robusto e Logging:** A aplicação foi construída com resiliência em mente. Falhas de rede ou erros de parsing em uma URL são capturados individualmente através de blocos `try...except`, registrados em um arquivo de log (`app.log`) para depuração, e não interrompem o processamento das demais URLs, garantindo que a tarefa seja concluída.
 
+## Arquitetura
+
+Aqui está uma visão de alto nível da arquitetura da aplicação, ilustrando a separação de responsabilidades entre as diferentes camadas.
+
+```mermaid
+graph TD
+    classDef default fill:#2E3440,stroke:#5E81AC,stroke-width:2px,color:#ECEFF4
+    classDef ui fill:#3E4451,stroke:#61afef,color:#ECEFF4
+    classDef app fill:#4C566A,stroke:#98c379,color:#ECEFF4
+    classDef base fill:#3B4252,stroke:#e5c07b,color:#ECEFF4,stroke-dasharray: 5 5
+    classDef core fill:#56B6C2,stroke:#ECEFF4,color:#2E3440,font-weight:bold
+    classDef infra fill:#3B4252,stroke:#c678dd,color:#ECEFF4
+    classDef lib fill:#282c34,stroke:#4b5263,color:#abb2bf
+
+    User[User via CLI] --> Main(main.py) --> App{CliApp}
+
+    subgraph "Commands"
+        BaseCmd[(BaseCommand)]
+        Scan[<b>ScanMetasCommand</b><br>commands/scan_metas.py]
+        Comp[<b>CompareMetasCommand</b><br>commands/compare_metas.py]
+        Site[<b>SitemapCheckCommand</b><br>commands/sitemap_check.py]
+    end
+
+    Crawler[<b>Crawler</b><br>core/crawler.py]
+
+    subgraph "Infrastructure"
+        Reader[ExcelReader]
+        Writer[ExcelWriter]
+        Pandas["pandas"]
+        Requests["requests"]
+        BS["BeautifulSoup"]
+        TQDM["tqdm"]
+        XlsxW["xlsxwriter"]
+        Quest["questionary"]
+        ThreadPool["ThreadPoolExecutor"]
+    end
+
+    App -- invokes --> Scan & Comp & Site
+    Scan & Comp & Site -- inherits --> BaseCmd
+
+    Scan & Comp & Site -- uses --> Crawler
+
+    App -- uses --> Quest
+
+    BaseCmd -- uses --> Reader & Writer & TQDM & ThreadPool
+
+    Crawler -- uses --> Requests & BS & ThreadPool
+
+    Reader & Writer -- uses --> Pandas
+    Writer -- uses --> XlsxW
+
+    class User,Main,App ui
+    class Scan,Comp,Site app
+    class BaseCmd base
+    class Crawler core
+    class Reader,Writer infra
+    class Pandas,Requests,BS,TQDM,XlsxW,Quest,ThreadPool lib
+```
+
 ## Demonstração
 
 Aqui está um exemplo do relatório final gerado pelo script:

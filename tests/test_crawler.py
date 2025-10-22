@@ -1,4 +1,4 @@
-from unittest.mock import patch, Mock
+from unittest.mock import patch, Mock, MagicMock
 from core.crawler import Crawler
 from requests.exceptions import RequestException
 
@@ -123,6 +123,33 @@ def test_get_meta_content_by_name_should_return_none_if_content_missing():
         assert result is None
 
 
+def test_execute_scan_calls_find_meta_by_name_for_each_check():
+    """
+    Verifies that execute_scan iterates over all checks and calls find_meta_by_name for each.
+    """
+    mock_session = Mock()
+    crawler_instance = Crawler(
+        "http://fakeurl.com", session=mock_session, tags_to_check=["robots", "viewport"]
+    )
+
+    def mock_find_meta(meta_name):
+        if meta_name == "robots":
+            return True
+        if meta_name == "viewport":
+            return False
+
+    with patch.object(
+        crawler_instance, "find_meta_by_name", side_effect=mock_find_meta
+    ) as mock_find:
+        result = crawler_instance.execute_scan()
+
+        assert result == {"robots": True, "viewport": False}
+
+        assert mock_find.call_count == 2
+        mock_find.assert_any_call("robots")
+        mock_find.assert_any_call("viewport")
+
+
 def test_fetch_sitemap_urls_parses_simple_sitemap():
     """
     Verifies that fetch_sitemap_urls correctly extracts URLs from a simple final sitemap.
@@ -245,4 +272,89 @@ def test_fetch_sitemap_urls_handles_invalid_xml():
         result = crawler_instance.fetch_sitemap_urls()
 
         assert result == set()
+        mock_html_search.assert_called_once()
+
+
+def test_fetch_sitemap_urls_handles_child_sitemap_error(monkeypatch):
+    """
+    Verifies that if one child sitemap fails, the others are still processed.
+    """
+    fake_index_xml = """
+    <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+      <sitemap><loc>https://example.com/sitemap_ok.xml</loc></sitemap>
+      <sitemap><loc>https://example.com/sitemap_broken.xml</loc></sitemap>
+    </sitemapindex>
+    """
+    fake_sitemap_ok_xml = """
+    <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+      <url><loc>https://example.com/page1</loc></url>
+    </urlset>
+    """
+
+    expected_urls = {"https://example.com/page1"}
+
+    mock_logger = MagicMock()
+    monkeypatch.setattr("core.crawler.logger", mock_logger)
+
+    def mock_search_side_effect(self_instance):
+        if self_instance.url == "https://example.com/sitemap_index.xml":
+            return fake_index_xml
+        if self_instance.url == "https://example.com/sitemap_ok.xml":
+            return fake_sitemap_ok_xml
+        if self_instance.url == "https://example.com/sitemap_broken.xml":
+            raise RequestException("Broken URL")  # Simula falha
+        return None
+
+    with patch(
+        "core.crawler.Crawler.html_search",
+        side_effect=mock_search_side_effect,
+        autospec=True,
+    ):
+        mock_session = Mock()
+        crawler_instance = Crawler(
+            "https://example.com/sitemap_index.xml",
+            session=mock_session,
+            tags_to_check=[],
+        )
+
+        result_urls = crawler_instance.fetch_sitemap_urls()
+
+        assert result_urls == expected_urls
+
+        mock_logger.error.assert_called_with(
+            "Error processing sitemap https://example.com/sitemap_broken.xml: Broken URL"
+        )
+
+        mock_logger.warning.assert_not_called()
+
+
+def test_fetch_sitemap_urls_handles_tags_without_loc():
+    """
+    Verifies that sitemap parsing ignores <url> or <sitemap> tags that are missing a <loc> tag.
+    """
+    fake_sitemap_xml = """
+    <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+      <url>
+        <loc>https://example.com/page1</loc>
+      </url>
+      <url>
+         <changefreq>daily</changefreq>
+      </url>
+      <url>
+        <loc>https://example.com/page2</loc>
+      </url>
+    </urlset>
+    """
+    expected_urls = {"https://example.com/page1", "https://example.com/page2"}
+
+    with patch("core.crawler.Crawler.html_search") as mock_html_search:
+        mock_html_search.return_value = fake_sitemap_xml
+        mock_session = Mock()
+        crawler_instance = Crawler(
+            "http://fakeurl.com/sitemap.xml", session=mock_session, tags_to_check=[]
+        )
+
+        result_urls = crawler_instance.fetch_sitemap_urls()
+
+        assert result_urls == expected_urls
         mock_html_search.assert_called_once()

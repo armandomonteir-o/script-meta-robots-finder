@@ -136,7 +136,7 @@ class CliApp:
         args_dict: dict,
         command_name: str,
     ):
-
+        args_dict["command"] = command_name
         final_args = argparse.Namespace(**args_dict)
 
         for action in command_parser._actions:

@@ -111,11 +111,11 @@ class Command(ABC):
                 return sheet_data
             except FileNotFoundError:
                 new_filepath = questionary.text(
-                    f"Arquivo '{filepath}' não encontrado. Por favor, digite o nome correto do caminho do arquivo:"
+                    f"File '{filepath}' not found. Please enter the correct file path:"
                 ).ask()
 
                 if new_filepath is None:
-                    print("Operação cancelada.")
+                    print("Operation canceled.")
                     return
 
                 filepath = self._normalize_filepath(new_filepath)
@@ -140,11 +140,11 @@ class Command(ABC):
                 return urls_to_check
             except KeyError:
                 new_column = questionary.text(
-                    f"Coluna '{column}' não encontrada na planilha. Por favor, digite o nome correto da coluna:"
+                    f"Column '{column}' not found in the spreadsheet. Please enter the correct column name:"
                 ).ask()
 
                 if new_column is None:
-                    print("Operação cancelada.")
+                    print("Operation canceled.")
                     return None
                 column = new_column
 
@@ -185,11 +185,11 @@ class Command(ABC):
                 else:
                     description = col_to_find["description"]
                     new_col_name = questionary.text(
-                        f"Coluna '{current_col_name}', {description} não encontrada. Por favor, digite o nome correto da coluna:"
+                        f"Column '{current_col_name}', {description} not found. Please enter the correct column name:"
                     ).ask()
 
                     if new_col_name is None:
-                        print("Operação cancelada.")
+                        print("Operation canceled.")
                         return None
 
                     current_col_name = new_col_name

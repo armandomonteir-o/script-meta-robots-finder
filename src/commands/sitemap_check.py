@@ -83,27 +83,25 @@ class SitemapCheckCommand(Command):
                         cannot be fetched or parsed.
         """
         sitemap_url = str(sheet_data[sitemap_col].iloc[0])
-        print(f"URL do Sitemap a ser analisada: {sitemap_url}")
+        print(f"Sitemap URL to be analyzed: {sitemap_url}")
 
         with rq.Session() as session:
             crawler = Crawler(sitemap_url, session, [])
-            print("Buscando e analisando o sitemap... Isso pode levar um momento.")
+            print("Fetching and parsing sitemap... This may take a moment.")
             sitemap_urls = crawler.fetch_sitemap_urls()
 
         if sitemap_urls is None:
-            print("Não foi possível ler o sitemap...")
+            print("Could not read the sitemap...")
             return None
 
         sitemap_urls_set = set(sitemap_urls)
-        print(
-            f"Sitemap analisado com sucesso. {len(sitemap_urls_set)} URLs encontradas."
-        )
+        print(f"Sitemap parsed successfully. {len(sitemap_urls_set)} URLs found.")
 
         return sitemap_urls_set
 
     def execute(self, args: argparse.Namespace):
 
-        print(">>> Comando 'sitemap-check' ativado! <<<")
+        print(">>> 'sitemap-check' command activated! <<<")
 
         filepath = self._normalize_filepath(args.file_path)
 
@@ -112,8 +110,8 @@ class SitemapCheckCommand(Command):
             return
 
         required_columns = [
-            {"name": args.sitemap_col, "description": "Que contém a URL do Sitemap"},
-            {"name": args.urls_col, "description": "Que contém as URLs esperadas"},
+            {"name": args.sitemap_col, "description": "Which contains the Sitemap URL"},
+            {"name": args.urls_col, "description": "Which contains the expected URLs"},
         ]
 
         validated_columns = self._ensure_multiple_columns_exist(
@@ -147,7 +145,7 @@ class SitemapCheckCommand(Command):
         )
 
         if not report_data:
-            print("Nenhum dado foi processado. Nenhum relatório será gerado.")
+            print("No data was processed. No report will be generated.")
             return
 
         report_df = pd.DataFrame(report_data)

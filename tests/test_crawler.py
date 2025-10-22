@@ -302,7 +302,7 @@ def test_fetch_sitemap_urls_handles_child_sitemap_error(monkeypatch):
         if self_instance.url == "https://example.com/sitemap_ok.xml":
             return fake_sitemap_ok_xml
         if self_instance.url == "https://example.com/sitemap_broken.xml":
-            raise RequestException("Broken URL")  # Simula falha
+            raise RequestException("Broken URL")  # Simulates failure
         return None
 
     with patch(

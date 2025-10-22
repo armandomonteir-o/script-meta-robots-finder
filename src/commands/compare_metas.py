@@ -97,8 +97,8 @@ class CompareMetasCommand(Command):
             args (argparse.Namespace): The command-line arguments, including
                 file_path and the names of the relevant columns.
         """
-        print(">>> Comando 'compare-metas' ativado! <<<")
-        print(f"Recebi os argumentos: {args}")
+        print(">>> 'compare-metas' command activated! <<<")
+        print(f"Received arguments: {args}")
 
         filepath = self._normalize_filepath(args.file_path)
 
@@ -107,9 +107,12 @@ class CompareMetasCommand(Command):
             raise ValueError("No valid sheet data found in the file")
 
         required_columns = [
-            {"name": args.url_col, "description": "que contém as URLs"},
-            {"name": args.name_col, "description": "que contém os nomes das meta tags"},
-            {"name": args.content_col, "description": "que contém o conteúdo esperado"},
+            {"name": args.url_col, "description": "which contains the URLs"},
+            {"name": args.name_col, "description": "which contains the meta tag names"},
+            {
+                "name": args.content_col,
+                "description": "which contains the expected content",
+            },
         ]
 
         validated_columns = self._ensure_multiple_columns_exist(
@@ -139,7 +142,7 @@ class CompareMetasCommand(Command):
         )
 
         if not report_data:
-            print("Nenhum dado foi processado. Nenhum relatório será gerado.")
+            print("No data was processed. No report will be generated.")
             return
 
         df = pd.DataFrame(report_data)

@@ -151,7 +151,7 @@ class Crawler:
 
             if sitemap_index_tags:
                 print(
-                    f"   -> Sitemap Index detectado. Analisando {len(sitemap_index_tags)} sitemaps filhos..."
+                    f" -> Sitemap Index detected. Analyzing {len(sitemap_index_tags)} child sitemaps..."
                 )
                 logger.info(
                     f"Sitemap Index found at {self.url}. Processing {len(sitemap_index_tags)} child sitemaps."
@@ -178,7 +178,7 @@ class Crawler:
             url_tags = self.soup.find_all("url")
             if url_tags:
                 print(
-                    f"   -> Sitemap Padrão detectado. Analisando {len(url_tags)} sitemaps filhos..."
+                    f" -> Standard Sitemap detected. Analyzing {len(url_tags)} URLs..."
                 )
                 logger.info(
                     f"Standard sitemap found at {self.url}. Processing {len(url_tags)} URLs."

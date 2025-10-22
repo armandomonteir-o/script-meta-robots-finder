@@ -51,7 +51,7 @@ def test_assert_frame_equal_fails_for_different_data(tmp_path):
     output_file = tmp_path / "report.xlsx"
 
     df_to_write = pd.DataFrame({"URL": ["site1.com"], "robots": [True]})
-    different_df = pd.DataFrame({"URL": ["site-diferente.com"], "robots": [True]})
+    different_df = pd.DataFrame({"URL": ["different-site.com"], "robots": [True]})
 
     ExcelWriter.create_spreadsheet_with_results(df_to_write, filename=str(output_file))
 

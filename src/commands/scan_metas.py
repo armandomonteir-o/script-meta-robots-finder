@@ -65,7 +65,7 @@ class ScanMetasCommand(Command):
             args (argparse.Namespace): The command-line arguments, including
                 file_path, column_name, and checks.
         """
-        print(">>> Comando 'scan-metas' ativado! <<<")
+        print(">>> 'scan-metas' command activated! <<<")
 
         filepath = self._normalize_filepath(args.file_path)
         sheet_data = self._get_valid_sheet_data(filepath)
@@ -91,7 +91,7 @@ class ScanMetasCommand(Command):
         )
 
         if not report_data:
-            print("Nenhum dado foi processado. Nenhum relatório será gerado.")
+            print("No data was processed. No report will be generated.")
             return
 
         logger.info("Scan concluído. Gerando relatório.")

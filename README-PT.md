@@ -2,6 +2,7 @@
 
 ![Python Version](https://img.shields.io/badge/python-3.9+-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
+![Coverage](https://img.shields.io/badge/coverage-91%25-brightgreen.svg)
 
 **Uma ferramenta de linha de comando (CLI) de alto desempenho para automatizar auditorias técnicas de SEO.**
 
@@ -18,8 +19,8 @@ Durante minha experiência como estagiário em Desenvolvimento Full Stack na Con
 As demandas eram variadas:
 
 - Garantir a presença da tag essencial `<meta name="robots">` para a correta indexação.
-
 - Auditar se o conteúdo de dezenas de `<meta name="description">` ou outras tags havia sido atualizado corretamente conforme o planejado.
+- Verificar se todas as URLs importantes estavam devidamente listadas nos sitemaps XML para rastreamento pelos motores de busca.
 
 O gargalo era sempre o mesmo: a verificação manual. O processo era desanimador, lento e propenso a erros:
 
@@ -39,6 +40,8 @@ A solução foi desenvolvida de forma modular, com cada comando sendo uma respos
 
 2. Para a auditoria de conteúdo: Foi implementado o comando `compare-metas`. Ele automatiza a validação do conteúdo de meta tags, como `<title>` ou `<meta name="description">`, comparando o valor atual com um texto esperado e reportando as divergências.
 
+3. Para verificação de sitemaps: Foi introduzido o comando `sitemap-check`. Ele valida que todas as URLs críticas estão devidamente incluídas nos sitemaps XML, garantindo uma cobertura adequada para o rastreamento pelos motores de busca.
+
 O verdadeiro poder do SEO Helper, no entanto, está em sua arquitetura. Em vez de criar scripts isolados, optei por um design escalável baseado no Command Pattern. Isso significa que a aplicação está pronta para crescer: novas ferramentas de verificação podem ser adicionadas como novos "comandos" sem alterar a base do sistema, consolidando o SEO Helper como uma suíte de SEO progressivamente mais poderosa.
 
 ## Principais Funcionalidades
@@ -50,6 +53,7 @@ A arquitetura desta ferramenta utiliza um conjunto de bibliotecas poderosas para
 - **Interface de Usuário Amigável e Guiada:** Para uma melhor experiência (UX), a ferramenta oferece um modo interativo (`questionary`) que guia o usuário passo a passo. Para operações diretas, uma barra de progresso (`tqdm`) informa o status em tempo real, combinando acessibilidade com feedback claro.
 - **Rede Otimizada e Eficiente:** Para minimizar a latência e o overhead de conexões, a aplicação utiliza um único objeto `requests.Session` que é compartilhado entre todas as threads. Isso permite a reutilização de conexões TCP (keep-alive), melhorando significativamente a performance em varreduras de grande volume.
 - **Tratamento de Erros Robusto e Logging:** A aplicação foi construída com resiliência em mente. Falhas de rede ou erros de parsing em uma URL são capturados individualmente através de blocos `try...except`, registrados em um arquivo de log (`app.log`) para depuração, e não interrompem o processamento das demais URLs, garantindo que a tarefa seja concluída.
+- **Cobertura Abrangente de Testes:** O código-fonte mantém uma alta cobertura de testes (91%) através de testes unitários e de integração extensivos, garantindo confiabilidade e facilitando a adição de novas funcionalidades com segurança.
 
 ## Arquitetura
 
@@ -195,6 +199,32 @@ python main.py compare-metas <caminho_do_arquivo_de_auditoria.xlsx>
   python main.py compare-metas "caminho/para/sua/auditoria.xlsx"
   ```
 
+---
+
+**Modo 4: Direto com `sitemap-check`**
+
+Use este comando para verificar se URLs importantes estão devidamente listadas em sitemaps XML. Ele compara uma lista de URLs esperadas com o conteúdo real dos sitemaps XML.
+
+- Uso:
+
+```bash
+python main.py sitemap-check <caminho_para_arquivo.xlsx> [--sitemap-col SITEMAP_COL] [--urls-col URLS_COL]
+```
+
+- Exemplo Prático:
+
+```bash
+# Verificar URLs usando nomes de colunas padrão
+python main.py sitemap-check "samples/sample_urls_sitemap.xlsx"
+
+# Especificar nomes de colunas personalizados
+python main.py sitemap-check "samples/sample_urls_sitemap.xlsx" --sitemap-col "URL do Sitemap" --urls-col "URLs Esperadas"
+```
+
+**Nota:** O arquivo de entrada deve conter duas colunas:
+- Uma coluna para URLs de sitemap (nome padrão: "Sitemap")
+- Uma coluna para as URLs à serem verificadas (nome padrão: "Expected URLs")
+
 ## Tecnologias Utilizadas
 
 A seleção de tecnologias para este projeto foi focada em performance, robustez e uma excelente experiência de usuário.
@@ -204,6 +234,8 @@ A seleção de tecnologias para este projeto foi focada em performance, robustez
 - **Requests & Beautiful Soup:** A dupla padrão da indústria para web scraping. `Requests` (com `requests.Session`) gerencia as conexões de rede de forma eficiente, enquanto `Beautiful Soup` faz o parsing do HTML mais complexo com facilidade e resiliência.
 - **Pandas & XlsxWriter:** Utilizados para a manipulação dos dados em memória e para a geração dos relatórios finais. `XlsxWriter` permite a criação de planilhas `.xlsx` com formatação profissional, como cores condicionais e filtros automáticos.
 - **Tqdm:** Essencial para a experiência do usuário em uma CLI. Fornece uma barra de progresso clara e em tempo real, dando feedback visual sobre o andamento de tarefas que podem levar mais tempo.
+- **lxml:** Um analisador XML de alto desempenho usado para processar sitemaps de forma eficiente e confiável.
+- **pytest & pytest-cov:** Framework de teste padrão da indústria com relatórios de cobertura, permitindo suítes de teste abrangentes e métricas de qualidade.
 
 ## Licença
 

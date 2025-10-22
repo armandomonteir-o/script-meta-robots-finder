@@ -2,6 +2,7 @@
 
 ![Python Version](https://img.shields.io/badge/python-3.9+-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
+![Coverage](https://img.shields.io/badge/coverage-91%25-brightgreen.svg)
 
 **A high-performance command-line (CLI) tool for automating technical SEO audits.**
 
@@ -19,6 +20,7 @@ The demands were varied:
 
 - Ensuring the presence of the essential `<meta name="robots">` tag for correct indexing.
 - Auditing whether the content of dozens of `<meta name="description">` tags or others had been correctly updated as planned.
+- Verifying that all important URLs were properly listed in the XML sitemaps for search engine crawling.
 
 The bottleneck was always the same: manual verification. The process was daunting, slow, and prone to errors:
 
@@ -38,15 +40,18 @@ The solution was developed in a modular way, with each command being a direct an
 
 2.  **For auditing content**: The `compare-metas` command was implemented. It automates the validation of meta tag content, like `<title>` or `<meta name="description">`, by comparing the current value against an expected text and reporting any discrepancies.
 
+3.  **For sitemap verification**: The `sitemap-check` command was introduced. It validates that all critical URLs are properly included in XML sitemaps, ensuring proper search engine crawling coverage.
+
 The true power of SEO Helper, however, lies in its architecture. Instead of creating isolated scripts, I opted for a scalable design based on the **Command Pattern**. This means the application is ready to grow: new verification tools can be added as new "commands" without altering the system's core, establishing SEO Helper as an increasingly powerful SEO suite.
 
 ## Key Features
 
-- **Scalable Architecture with Command Pattern:** The application's core uses the Command Pattern. Each feature (`scan-metas`, `compare-metas`) is a decoupled, dynamically registered command object. This makes the system modular and easy to extend: new commands can be added without altering the existing code.
+- **Scalable Architecture with Command Pattern:** The application's core uses the Command Pattern. Each feature (`scan-metas`, `compare-metas`, `sitemap-check`) is a decoupled, dynamically registered command object. This makes the system modular and easy to extend: new commands can be added without altering the existing code.
 - **Generic and Reusable Concurrency Engine:** The parallel processing logic with `ThreadPoolExecutor` and the visual progress bar (`tqdm`) were abstracted into a base class (`BaseCommand`). Any new command automatically inherits high performance and real-time user feedback, promoting code reuse (DRY - Don't Repeat Yourself).
 - **User-Friendly and Guided Interface:** For a better user experience (UX), the tool offers an interactive mode (`questionary`) that guides the user step-by-step. For direct operations, a progress bar (`tqdm`) provides real-time status, combining accessibility with clear feedback.
 - **Optimized and Efficient Networking:** To minimize latency and connection overhead, the application uses a single `requests.Session` object shared across all threads. This allows for TCP connection reuse (keep-alive), significantly improving performance on large-volume scans.
 - **Robust Error Handling and Logging:** The application was built with resilience in mind. Network failures or parsing errors on a single URL are caught individually via `try...except` blocks, logged to a file (`app.log`) for debugging, and do not interrupt the processing of other URLs, ensuring the task completes.
+- **Comprehensive Test Coverage:** The codebase maintains a high test coverage (91%) through extensive unit and integration tests, ensuring reliability and making it easier to add new features with confidence.
 
 ## Architecture
 
@@ -186,13 +191,41 @@ Use this command to audit the content of different meta tags against expected va
 python main.py compare-metas <path_to_audit_file.xlsx>
 ```
 
--Practical Example:
-**Note:** For this command to work, your audit file must have columns named "URL", "Meta Name", and "Expected Content" (or you can specify other names using the --url-col, --name-col, and --content-col flags).
+- Practical Example:
 
 ```bash
 # Runs the audit based on the 'audit.xlsx' file
 python main.py compare-metas "path/to/your/audit.xlsx"
 ```
+
+**Note:** For this command to work, your audit file must have columns named "URL", "Meta Name", and "Expected Content" (or you can specify other names using the --url-col, --name-col, and --content-col flags).
+
+---
+
+**Mode 4: Direct with `sitemap-check`**
+
+Use this command to verify that important URLs are properly listed in XML sitemaps. It compares a list of expected URLs against the actual contents of XML sitemaps.
+
+- Usage:
+
+```bash
+python main.py sitemap-check <path_to_file.xlsx> [--sitemap-col SITEMAP_COL] [--urls-col URLS_COL]
+```
+
+- Practical Example:
+
+```bash
+# Verify URLs using default column names
+python main.py sitemap-check "samples/sample_urls_sitemap.xlsx"
+
+# Specify custom column names
+python main.py sitemap-check "samples/sample_urls_sitemap.xlsx" --sitemap-col "Sitemap URL" --urls-col "Expected URLs"
+```
+
+**Note:** The input file should contain two columns:
+
+- A column for sitemap URLs (default name: "Sitemap")
+- A column for the URLs to verify (default name: "Expected URLs")
 
 ## Tech Stack
 
@@ -203,6 +236,8 @@ The technology selection for this project focused on performance, robustness, an
 - **Requests & Beautiful Soup**: The industry-standard duo for web scraping. `Requests` (with `requests.Session`) efficiently manages network connections, while `Beautiful Soup` parses even complex HTML with ease and resilience.
 - **Pandas & XlsxWriter**: Used for in-memory data manipulation and for generating the final reports. `XlsxWriter` enables the creation of professionally formatted `.xlsx` spreadsheets with features like conditional coloring and auto-filters.
 - **Tqdm:** Essential for the user experience in a CLI. It provides a clear, real-time progress bar, giving visual feedback on the status of long-running tasks.
+- **lxml**: A high-performance XML parser used for processing sitemaps efficiently and reliably.
+- **pytest & pytest-cov**: Industry-standard testing framework with coverage reporting, enabling comprehensive test suites and quality metrics.
 
 ## License
 

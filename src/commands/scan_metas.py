@@ -96,4 +96,6 @@ class ScanMetasCommand(Command):
 
         logger.info("Scan concluído. Gerando relatório.")
         report_df = pd.DataFrame(report_data)
-        ExcelWriter.create_spreadsheet_with_results(report_df)
+        ExcelWriter.create_spreadsheet_with_results(
+            report_df, "results/scan_metas_results.xlsx"
+        )

@@ -146,4 +146,6 @@ class CompareMetasCommand(Command):
             return
 
         df = pd.DataFrame(report_data)
-        ExcelWriter.create_spreadsheet_with_results(df, "results/compare_results.xlsx")
+        ExcelWriter.create_spreadsheet_with_results(
+            df, "results/compare_metas_results.xlsx"
+        )

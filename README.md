@@ -1,3 +1,5 @@
+
+
 # 🤖 SEO Helper
 
 ![Python Version](https://img.shields.io/badge/python-3.9+-blue.svg)
@@ -130,8 +132,8 @@ Follow the steps below to set up and run the project on your local machine.
 
 ```bash
 # 1. Clone the repository
-git clone [https://github.com/armandomonteir-o/script-meta-robots-finder.git](https://github.com/armandomonteir-o/script-meta-robots-finder.git)
-cd script-meta-robots-finder
+git clone https://github.com/armandomonteir-o/seo-helper-cli.git
+cd seo-helper-cli
 
 # 2. Create and activate a virtual environment (highly recommended)
 python -m venv .venv
